@@ -3741,7 +3741,12 @@ let milhaoState = {
     currentQuestion: null,
     answered: false,
     prize: 0,
-    usedQuestions: []
+    usedQuestions: [],
+    // Sistema de equipes
+    teamsOrder: [],        // Ordem sorteada das equipes
+    currentTeamIndex: 0,   // Índice da equipe atual
+    teamsResults: [],      // Resultado de cada equipe: { teamIndex, prize, won }
+    gameStarted: false     // Se já começou (após sorteio)
 };
 
 function loadMilhaoGame() {
@@ -3749,48 +3754,70 @@ function loadMilhaoGame() {
 }
 
 function renderMilhaoSetup() {
+    // Resetar estado
+    milhaoState = {
+        currentLevel: 0,
+        helps: { cards: true, skip: true, audience: true },
+        currentQuestion: null,
+        answered: false,
+        prize: 0,
+        usedQuestions: [],
+        teamsOrder: [],
+        currentTeamIndex: 0,
+        teamsResults: [],
+        gameStarted: false
+    };
+    
     document.getElementById('gameContainer').innerHTML = `
         <div class="game-screen active">
             <div class="game-content">
-                <div class="setup-container" style="max-width: 600px;">
+                <div class="setup-container" style="max-width: 700px;">
                     <h2 class="setup-title">💰 Show do Milhão Bíblico</h2>
                     
-                    <div style="background: rgba(255, 215, 0, 0.1); border: 2px solid var(--accent-gold); border-radius: 15px; padding: 25px; margin-bottom: 25px;">
-                        <h3 style="color: var(--accent-gold); margin-bottom: 15px;">🎯 Níveis de Premiação</h3>
-                        <div style="display: grid; gap: 8px;">
-                            ${milhaoLevels.map((level, i) => `
-                                <div style="display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(255,255,255,0.05); border-radius: 8px; ${level.safe ? 'border-left: 4px solid var(--accent-green);' : ''}">
-                                    <span>Pergunta ${i + 1}</span>
-                                    <span style="font-weight: 700; color: ${level.safe ? 'var(--accent-green)' : 'var(--text-primary)'};">${level.label} ${level.safe ? '✓' : ''}</span>
-                                </div>
-                            `).join('')}
+                    <!-- Equipes Participantes -->
+                    <div style="background: rgba(0, 212, 255, 0.1); border: 2px solid var(--accent-cyan); border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="color: var(--accent-cyan); margin-bottom: 15px;">👥 Equipes Participantes</h3>
+                        <div id="milhaoTeamsList" style="display: grid; gap: 10px;">
+                            ${globalTeams.map((team, i) => {
+                                const color = teamColors[team.colorIndex];
+                                return `
+                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: rgba(255,255,255,0.05); border-radius: 10px; border-left: 4px solid ${color.color};">
+                                        <div style="width: 35px; height: 35px; border-radius: 50%; background: ${color.color}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; ${color.textColor ? 'color:' + color.textColor : ''}">${i + 1}</div>
+                                        <div>
+                                            <div style="font-weight: 600; color: var(--text-primary);">${team.name}</div>
+                                            ${team.leader ? `<div style="font-size: 0.85rem; color: var(--text-secondary);">Líder: ${team.leader}</div>` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
-                        <p style="color: var(--text-secondary); margin-top: 15px; font-size: 0.9rem;">
-                            ✓ = Ponto de parada garantido
-                        </p>
                     </div>
                     
-                    <div style="background: rgba(0, 212, 255, 0.1); border: 2px solid var(--accent-cyan); border-radius: 15px; padding: 20px; margin-bottom: 25px;">
-                        <h3 style="color: var(--accent-cyan); margin-bottom: 10px;">🆘 Ajudas Disponíveis</h3>
-                        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
-                            <div style="text-align: center;">
-                                <div style="font-size: 2rem;">🃏</div>
-                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Cartas</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 2rem;">⏭️</div>
-                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Pular</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 2rem;">👥</div>
-                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Plateia</div>
-                            </div>
-                        </div>
+                    <!-- Área de Sorteio -->
+                    <div id="milhaoSorteioArea" style="background: rgba(255, 215, 0, 0.1); border: 2px solid var(--accent-gold); border-radius: 15px; padding: 25px; margin-bottom: 20px; text-align: center;">
+                        <h3 style="color: var(--accent-gold); margin-bottom: 15px;">🎲 Sorteio da Ordem</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Clique para sortear qual equipe começa!</p>
+                        <button class="btn btn-primary" onclick="milhaoSortearOrdem()" style="font-size: 1.2rem; padding: 15px 40px;">
+                            🎲 Sortear Ordem
+                        </button>
+                    </div>
+                    
+                    <!-- Regras Resumidas -->
+                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="color: var(--text-primary); margin-bottom: 12px;">📋 Como Funciona</h3>
+                        <ul style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; padding-left: 20px;">
+                            <li>Cada equipe responde até <strong style="color: var(--accent-gold);">acertar tudo (1 MILHÃO)</strong> ou <strong style="color: #ef4444;">errar</strong></li>
+                            <li>Se errar, <strong style="color: #ef4444;">perde tudo</strong> e passa para a próxima equipe</li>
+                            <li>Pontos de parada: <strong style="color: var(--accent-green);">R$ 1.000</strong> e <strong style="color: var(--accent-green);">R$ 50.000</strong></li>
+                            <li>3 ajudas por equipe: 🃏 Cartas, ⏭️ Pular, 👥 Plateia</li>
+                        </ul>
                     </div>
                     
                     <div style="display: flex; gap: 15px;">
                         <button class="btn btn-secondary" onclick="showMenu()" style="flex: 1;">← Voltar</button>
-                        <button class="btn btn-primary" onclick="startMilhaoGame()" style="flex: 2;">💰 Começar!</button>
+                        <button id="btnIniciarMilhao" class="btn btn-primary" onclick="startMilhaoGame()" style="flex: 2; opacity: 0.5;" disabled>
+                            💰 Iniciar Jogo
+                        </button>
                     </div>
                 </div>
             </div>
@@ -3798,15 +3825,87 @@ function renderMilhaoSetup() {
     `;
 }
 
+// Função para sortear a ordem das equipes
+function milhaoSortearOrdem() {
+    const sorteioArea = document.getElementById('milhaoSorteioArea');
+    
+    // Criar array com índices das equipes e embaralhar
+    const indices = globalTeams.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    
+    milhaoState.teamsOrder = indices;
+    milhaoState.teamsResults = indices.map(i => ({ teamIndex: i, prize: 0, won: false, played: false }));
+    
+    // Animação de sorteio
+    let count = 0;
+    const maxCount = 15;
+    const interval = setInterval(() => {
+        count++;
+        const randomIdx = indices[Math.floor(Math.random() * indices.length)];
+        const team = globalTeams[randomIdx];
+        const color = teamColors[team.colorIndex];
+        
+        sorteioArea.innerHTML = `
+            <h3 style="color: var(--accent-gold); margin-bottom: 15px;">🎲 Sorteando...</h3>
+            <div style="font-size: 2rem; padding: 20px; background: ${color.color}; border-radius: 15px; display: inline-block; min-width: 200px; ${color.textColor ? 'color:' + color.textColor : 'color: white'}">
+                ${team.name}
+            </div>
+        `;
+        
+        if (count >= maxCount) {
+            clearInterval(interval);
+            
+            // Mostrar resultado final
+            const primeiraEquipe = globalTeams[indices[0]];
+            const primeiraColor = teamColors[primeiraEquipe.colorIndex];
+            
+            sorteioArea.innerHTML = `
+                <h3 style="color: var(--accent-gold); margin-bottom: 15px;">🎉 Ordem Sorteada!</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+                    ${indices.map((idx, pos) => {
+                        const team = globalTeams[idx];
+                        const color = teamColors[team.colorIndex];
+                        return `
+                            <div style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; background: ${pos === 0 ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255,255,255,0.05)'}; border-radius: 8px; ${pos === 0 ? 'border: 2px solid var(--accent-gold);' : ''}">
+                                <span style="font-size: 1.2rem; font-weight: bold; color: ${pos === 0 ? 'var(--accent-gold)' : 'var(--text-secondary)'};">${pos + 1}º</span>
+                                <div style="width: 25px; height: 25px; border-radius: 50%; background: ${color.color};"></div>
+                                <span style="color: var(--text-primary); ${pos === 0 ? 'font-weight: bold;' : ''}">${team.name}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <p style="color: var(--accent-gold); font-size: 1.1rem;">
+                    🚀 <strong>${primeiraEquipe.name}</strong> começa!
+                </p>
+            `;
+            
+            // Habilitar botão de iniciar
+            const btnIniciar = document.getElementById('btnIniciarMilhao');
+            btnIniciar.disabled = false;
+            btnIniciar.style.opacity = '1';
+            
+            Utils.createConfetti(30);
+        }
+    }, 100);
+}
+
 function startMilhaoGame() {
-    milhaoState = {
-        currentLevel: 0,
-        helps: { cards: true, skip: true, audience: true },
-        currentQuestion: null,
-        answered: false,
-        prize: 0,
-        usedQuestions: []
-    };
+    // Verificar se já sorteou a ordem
+    if (milhaoState.teamsOrder.length === 0) {
+        alert('Primeiro sorteie a ordem das equipes!');
+        return;
+    }
+    
+    // Resetar para a equipe atual
+    milhaoState.currentLevel = 0;
+    milhaoState.helps = { cards: true, skip: true, audience: true };
+    milhaoState.currentQuestion = null;
+    milhaoState.answered = false;
+    milhaoState.prize = 0;
+    milhaoState.gameStarted = true;
     
     loadMilhaoQuestion();
     
@@ -3814,6 +3913,69 @@ function startMilhaoGame() {
     if (window.currentMode === 'admin') {
         window.adminSendCommand('startGame', { game: 'milhao' });
     }
+}
+
+// Função para iniciar a vez de uma nova equipe
+function milhaoStartNextTeam() {
+    milhaoState.currentTeamIndex++;
+    
+    // Verificar se todas as equipes já jogaram
+    if (milhaoState.currentTeamIndex >= milhaoState.teamsOrder.length) {
+        milhaoShowFinalResults();
+        return;
+    }
+    
+    // Resetar estado para nova equipe
+    milhaoState.currentLevel = 0;
+    milhaoState.helps = { cards: true, skip: true, audience: true };
+    milhaoState.currentQuestion = null;
+    milhaoState.answered = false;
+    milhaoState.prize = 0;
+    // Não resetar usedQuestions para evitar repetição
+    
+    // Mostrar tela de transição
+    milhaoShowTeamTransition();
+}
+
+// Tela de transição entre equipes
+function milhaoShowTeamTransition() {
+    const teamIdx = milhaoState.teamsOrder[milhaoState.currentTeamIndex];
+    const team = globalTeams[teamIdx];
+    const color = teamColors[team.colorIndex];
+    
+    document.getElementById('gameContainer').innerHTML = `
+        <div class="game-screen active">
+            <div class="game-content">
+                <div class="end-container" style="text-align: center;">
+                    <h2 style="color: var(--accent-gold); font-size: 1.5rem; margin-bottom: 20px;">🎮 Próxima Equipe</h2>
+                    
+                    <div style="background: ${color.color}; padding: 30px 50px; border-radius: 20px; display: inline-block; margin-bottom: 20px; ${color.textColor ? 'color:' + color.textColor : 'color: white'}">
+                        <div style="font-size: 2.5rem; font-weight: bold;">${team.name}</div>
+                        ${team.leader ? `<div style="font-size: 1.2rem; opacity: 0.9; margin-top: 10px;">Líder: ${team.leader}</div>` : ''}
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); margin-bottom: 30px;">Equipe ${milhaoState.currentTeamIndex + 1} de ${milhaoState.teamsOrder.length}</p>
+                    
+                    <button class="btn btn-primary" onclick="loadMilhaoQuestion()" style="font-size: 1.2rem; padding: 15px 40px;">
+                        💰 Começar!
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    window.syncToProjection && window.syncToProjection(200);
+}
+
+// Função para obter a equipe atual
+function milhaoGetCurrentTeam() {
+    if (milhaoState.teamsOrder.length === 0) return null;
+    const teamIdx = milhaoState.teamsOrder[milhaoState.currentTeamIndex];
+    return {
+        index: teamIdx,
+        team: globalTeams[teamIdx],
+        color: teamColors[globalTeams[teamIdx].colorIndex]
+    };
 }
 
 function loadMilhaoQuestion() {
@@ -3842,6 +4004,12 @@ function renderMilhaoQuestion() {
     const correctLetter = letters[q.correct];
     const correctAnswer = q.options[q.correct];
     
+    // Obter equipe atual
+    const currentTeam = milhaoGetCurrentTeam();
+    const teamColor = currentTeam ? currentTeam.color : { color: 'var(--accent-gold)', textColor: '' };
+    const teamName = currentTeam ? currentTeam.team.name : 'Participante';
+    const teamLeader = currentTeam ? currentTeam.team.leader : '';
+    
     document.getElementById('gameContainer').innerHTML = `
         <div class="game-screen active">
             <div class="game-header">
@@ -3850,6 +4018,21 @@ function renderMilhaoQuestion() {
                 <div style="text-align: right;">
                     <div style="color: var(--accent-gold); font-size: 1.5rem; font-weight: 700;">${level.label}</div>
                     <div style="color: var(--text-secondary); font-size: 0.85rem;">Pergunta ${milhaoState.currentLevel + 1} de 6</div>
+                </div>
+            </div>
+            
+            <!-- Banner da Equipe Atual -->
+            <div style="background: ${teamColor.color}; padding: 15px 25px; margin: 0 0 20px 0; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; ${teamColor.textColor ? 'color:' + teamColor.textColor : 'color: white'}">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-size: 2rem;">🎯</span>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: bold;">${teamName}</div>
+                        ${teamLeader ? `<div style="font-size: 0.9rem; opacity: 0.9;">Líder: ${teamLeader}</div>` : ''}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.85rem; opacity: 0.8;">Valendo</div>
+                    <div style="font-size: 1.3rem; font-weight: bold;">${level.label}</div>
                 </div>
             </div>
             
@@ -3867,15 +4050,15 @@ function renderMilhaoQuestion() {
                 </div>
                 
                 <!-- Ajudas -->
-                <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                <div style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center;">
                     <button class="btn btn-secondary" onclick="milhaoUseCards()" ${!milhaoState.helps.cards ? 'disabled style="opacity: 0.3;"' : ''}>
-                        🃏 Cartas
+                        🃏 Cartas ${!milhaoState.helps.cards ? '(usado)' : ''}
                     </button>
                     <button class="btn btn-secondary" onclick="milhaoUseSkip()" ${!milhaoState.helps.skip ? 'disabled style="opacity: 0.3;"' : ''}>
-                        ⏭️ Pular
+                        ⏭️ Pular ${!milhaoState.helps.skip ? '(usado)' : ''}
                     </button>
                     <button class="btn btn-secondary" onclick="milhaoUseAudience()" ${!milhaoState.helps.audience ? 'disabled style="opacity: 0.3;"' : ''}>
-                        👥 Plateia
+                        👥 Plateia ${!milhaoState.helps.audience ? '(usado)' : ''}
                     </button>
                 </div>
                 
@@ -3905,20 +4088,52 @@ function renderMilhaoQuestion() {
                     `).join('')}
                 </div>
                 
-                <!-- Pirâmide de prêmios -->
-                <div style="position: fixed; right: 30px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); padding: 15px; border-radius: 15px;">
-                    ${milhaoLevels.map((l, i) => `
-                        <div style="padding: 8px 15px; border-radius: 8px; margin-bottom: 5px; font-size: 0.9rem;
-                            background: ${i === milhaoState.currentLevel ? 'var(--accent-gold)' : i < milhaoState.currentLevel ? 'var(--accent-green)' : 'rgba(255,255,255,0.1)'};
-                            color: ${i === milhaoState.currentLevel ? 'var(--bg-primary)' : i < milhaoState.currentLevel ? 'var(--bg-primary)' : 'var(--text-secondary)'};
-                            font-weight: ${i === milhaoState.currentLevel ? '700' : '400'};">
-                            ${l.label} ${l.safe ? '✓' : ''}
-                        </div>
-                    `).reverse().join('')}
+                <!-- Pirâmide de prêmios + Progresso Equipes -->
+                <div style="position: fixed; right: 30px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Prêmios -->
+                    <div style="background: rgba(0,0,0,0.7); padding: 15px; border-radius: 15px; border: 1px solid var(--accent-gold);">
+                        <div style="text-align: center; color: var(--accent-gold); font-weight: bold; margin-bottom: 10px; font-size: 0.85rem;">💰 PRÊMIOS</div>
+                        ${milhaoLevels.map((l, i) => `
+                            <div style="padding: 8px 15px; border-radius: 8px; margin-bottom: 5px; font-size: 0.85rem;
+                                background: ${i === milhaoState.currentLevel ? 'var(--accent-gold)' : i < milhaoState.currentLevel ? 'var(--accent-green)' : 'rgba(255,255,255,0.1)'};
+                                color: ${i === milhaoState.currentLevel ? 'var(--bg-primary)' : i < milhaoState.currentLevel ? 'var(--bg-primary)' : 'var(--text-secondary)'};
+                                font-weight: ${i === milhaoState.currentLevel ? '700' : '400'};
+                                ${l.safe ? 'border: 2px solid var(--accent-green);' : ''}">
+                                ${l.label} ${l.safe ? '✓' : ''}
+                            </div>
+                        `).reverse().join('')}
+                    </div>
+                    
+                    <!-- Progresso das Equipes -->
+                    <div style="background: rgba(0,0,0,0.7); padding: 15px; border-radius: 15px; border: 1px solid var(--accent-cyan);">
+                        <div style="text-align: center; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px; font-size: 0.85rem;">📊 EQUIPES</div>
+                        ${milhaoState.teamsOrder.map((tIdx, pos) => {
+                            const t = globalTeams[tIdx];
+                            const c = teamColors[t.colorIndex];
+                            const result = milhaoState.teamsResults[pos];
+                            const isCurrentTeam = pos === milhaoState.currentTeamIndex;
+                            const played = result.played;
+                            return `
+                                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; margin-bottom: 4px; 
+                                    background: ${isCurrentTeam ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255,255,255,0.05)'}; 
+                                    ${isCurrentTeam ? 'border: 2px solid var(--accent-gold);' : ''}">
+                                    <div style="width: 20px; height: 20px; border-radius: 50%; background: ${c.color}; flex-shrink: 0;"></div>
+                                    <span style="flex: 1; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ${isCurrentTeam ? 'var(--accent-gold)' : 'var(--text-secondary)'};">
+                                        ${t.name.replace('Tribo de ', '')}
+                                    </span>
+                                    <span style="font-size: 0.75rem; color: ${played ? (result.won ? 'var(--accent-green)' : '#ef4444') : 'var(--text-secondary)'};">
+                                        ${played ? (result.won ? '🏆1M' : 'R$' + (result.prize/1000) + 'k') : (isCurrentTeam ? '🎯' : '⏳')}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             </div>
         </div>
     `;
+    
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 // Funções Admin para Show do Milhão
@@ -3976,19 +4191,57 @@ function milhaoAnswer(idx) {
             correctBtn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
             Utils.showFeedback('wrong', '😢', 'Errou!', 2000);
             
-            // Calcular prêmio (volta ao último ponto seguro)
-            let safePrize = 0;
-            for (let i = milhaoState.currentLevel - 1; i >= 0; i--) {
-                if (milhaoLevels[i].safe) {
-                    safePrize = milhaoLevels[i].value;
-                    break;
-                }
-            }
-            milhaoState.prize = safePrize;
+            // ERROU - perde tudo! (não volta ao ponto seguro)
+            milhaoState.prize = 0;
             
-            setTimeout(() => milhaoEnd(false), 2500);
+            // Registrar resultado da equipe atual
+            if (milhaoState.teamsResults[milhaoState.currentTeamIndex]) {
+                milhaoState.teamsResults[milhaoState.currentTeamIndex].prize = 0;
+                milhaoState.teamsResults[milhaoState.currentTeamIndex].won = false;
+                milhaoState.teamsResults[milhaoState.currentTeamIndex].played = true;
+            }
+            
+            setTimeout(() => milhaoTeamLost(), 2500);
         }
     }, 2000);
+}
+
+// Quando a equipe erra e perde
+function milhaoTeamLost() {
+    const currentTeam = milhaoGetCurrentTeam();
+    const teamName = currentTeam ? currentTeam.team.name : 'Equipe';
+    const teamColor = currentTeam ? currentTeam.color : { color: '#ef4444' };
+    const hasMoreTeams = milhaoState.currentTeamIndex < milhaoState.teamsOrder.length - 1;
+    
+    document.getElementById('gameContainer').innerHTML = `
+        <div class="game-screen active">
+            <div class="game-content">
+                <div class="end-container" style="text-align: center;">
+                    <span class="trophy-icon">😢</span>
+                    <h2 class="winner-title" style="color: #ef4444;">Errou!</h2>
+                    
+                    <div style="background: ${teamColor.color}; padding: 20px 40px; border-radius: 15px; display: inline-block; margin: 20px 0; ${teamColor.textColor ? 'color:' + teamColor.textColor : 'color: white'}">
+                        <div style="font-size: 1.5rem; font-weight: bold;">${teamName}</div>
+                    </div>
+                    
+                    <p style="color: #ef4444; font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">Perdeu tudo!</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 30px;">Prêmio final: R$ 0</p>
+                    
+                    ${hasMoreTeams ? `
+                        <button class="btn btn-primary" onclick="milhaoStartNextTeam()" style="font-size: 1.2rem; padding: 15px 40px;">
+                            ➡️ Próxima Equipe
+                        </button>
+                    ` : `
+                        <button class="btn btn-primary" onclick="milhaoShowFinalResults()" style="font-size: 1.2rem; padding: 15px 40px;">
+                            🏆 Ver Resultado Final
+                        </button>
+                    `}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 function milhaoUseCards() {
@@ -4047,48 +4300,194 @@ function milhaoUseAudience() {
 function milhaoWin() {
     Utils.createConfetti(150);
     
+    // Registrar vitória da equipe atual
+    if (milhaoState.teamsResults[milhaoState.currentTeamIndex]) {
+        milhaoState.teamsResults[milhaoState.currentTeamIndex].prize = 1000000;
+        milhaoState.teamsResults[milhaoState.currentTeamIndex].won = true;
+        milhaoState.teamsResults[milhaoState.currentTeamIndex].played = true;
+    }
+    
+    const currentTeam = milhaoGetCurrentTeam();
+    const teamName = currentTeam ? currentTeam.team.name : 'Equipe';
+    const teamColor = currentTeam ? currentTeam.color : { color: 'var(--accent-gold)' };
+    const hasMoreTeams = milhaoState.currentTeamIndex < milhaoState.teamsOrder.length - 1;
+    
     document.getElementById('gameContainer').innerHTML = `
         <div class="game-screen active">
             <div class="game-content">
-                <div class="end-container">
+                <div class="end-container" style="text-align: center;">
                     <span class="trophy-icon">🏆</span>
-                    <h2 class="winner-title">MILIONÁRIO!</h2>
-                    <p class="winner-name" style="color: var(--accent-gold); font-size: 3rem;">R$ 1.000.000</p>
-                    <p style="color: var(--text-secondary); margin-bottom: 30px;">Você acertou todas as perguntas!</p>
+                    <h2 class="winner-title" style="color: var(--accent-gold);">MILIONÁRIO!</h2>
                     
-                    <div style="display: flex; gap: 20px; justify-content: center;">
-                        <button class="btn btn-secondary" onclick="showMenu()">🏠 Menu</button>
-                        <button class="btn btn-primary" onclick="startMilhaoGame()">🔄 Jogar Novamente</button>
+                    <div style="background: ${teamColor.color}; padding: 25px 50px; border-radius: 15px; display: inline-block; margin: 20px 0; ${teamColor.textColor ? 'color:' + teamColor.textColor : 'color: white'}">
+                        <div style="font-size: 1.8rem; font-weight: bold;">${teamName}</div>
                     </div>
+                    
+                    <p style="color: var(--accent-gold); font-size: 3rem; font-weight: bold; margin-bottom: 10px;">R$ 1.000.000</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 30px;">Acertou todas as perguntas!</p>
+                    
+                    ${hasMoreTeams ? `
+                        <button class="btn btn-primary" onclick="milhaoStartNextTeam()" style="font-size: 1.2rem; padding: 15px 40px;">
+                            ➡️ Próxima Equipe
+                        </button>
+                    ` : `
+                        <button class="btn btn-primary" onclick="milhaoShowFinalResults()" style="font-size: 1.2rem; padding: 15px 40px;">
+                            🏆 Ver Resultado Final
+                        </button>
+                    `}
                 </div>
             </div>
         </div>
     `;
+    
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 function milhaoEnd(won) {
+    // Registrar resultado se ainda não foi registrado
+    if (milhaoState.teamsResults[milhaoState.currentTeamIndex] && !milhaoState.teamsResults[milhaoState.currentTeamIndex].played) {
+        milhaoState.teamsResults[milhaoState.currentTeamIndex].prize = milhaoState.prize;
+        milhaoState.teamsResults[milhaoState.currentTeamIndex].won = won;
+        milhaoState.teamsResults[milhaoState.currentTeamIndex].played = true;
+    }
+    
+    const currentTeam = milhaoGetCurrentTeam();
+    const teamName = currentTeam ? currentTeam.team.name : 'Equipe';
+    const hasMoreTeams = milhaoState.currentTeamIndex < milhaoState.teamsOrder.length - 1;
+    
     document.getElementById('gameContainer').innerHTML = `
         <div class="game-screen active">
             <div class="game-content">
                 <div class="end-container">
                     <span class="trophy-icon">${milhaoState.prize > 0 ? '💰' : '😢'}</span>
-                    <h2 class="winner-title">${milhaoState.prize > 0 ? 'Você ganhou!' : 'Fim de Jogo'}</h2>
+                    <h2 class="winner-title">${milhaoState.prize > 0 ? 'Fim de Jogo' : 'Fim de Jogo'}</h2>
+                    <p style="color: var(--text-secondary);">${teamName}</p>
                     <p class="winner-name" style="color: var(--accent-gold);">R$ ${milhaoState.prize.toLocaleString()}</p>
                     
                     <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
-                        <button class="btn btn-secondary" onclick="showMenu()">🏠 Menu</button>
-                        <button class="btn btn-primary" onclick="startMilhaoGame()">🔄 Jogar Novamente</button>
+                        ${hasMoreTeams ? `
+                            <button class="btn btn-primary" onclick="milhaoStartNextTeam()">➡️ Próxima Equipe</button>
+                        ` : `
+                            <button class="btn btn-primary" onclick="milhaoShowFinalResults()">🏆 Ver Resultado Final</button>
+                        `}
                     </div>
                 </div>
             </div>
         </div>
     `;
+    
+    window.syncToProjection && window.syncToProjection(200);
+}
+
+// Mostrar resultado final de todas as equipes
+function milhaoShowFinalResults() {
+    Utils.createConfetti(100);
+    
+    // Ordenar equipes por prêmio (maior primeiro)
+    const sortedResults = [...milhaoState.teamsResults].sort((a, b) => b.prize - a.prize);
+    
+    document.getElementById('gameContainer').innerHTML = `
+        <div class="game-screen active">
+            <div class="game-content">
+                <div class="end-container" style="max-width: 700px; text-align: center;">
+                    <span class="trophy-icon">🏆</span>
+                    <h2 class="winner-title" style="color: var(--accent-gold); margin-bottom: 30px;">Resultado Final</h2>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px;">
+                        ${sortedResults.map((result, pos) => {
+                            const team = globalTeams[result.teamIndex];
+                            const color = teamColors[team.colorIndex];
+                            const isWinner = pos === 0 && result.prize > 0;
+                            const medal = pos === 0 ? '🥇' : pos === 1 ? '🥈' : pos === 2 ? '🥉' : `${pos + 1}º`;
+                            
+                            return `
+                                <div style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; 
+                                    background: ${isWinner ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255,255,255,0.05)'}; 
+                                    border-radius: 15px; 
+                                    ${isWinner ? 'border: 3px solid var(--accent-gold);' : 'border: 1px solid rgba(255,255,255,0.1);'}">
+                                    <span style="font-size: 1.5rem; min-width: 40px;">${medal}</span>
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: ${color.color}; flex-shrink: 0;"></div>
+                                    <div style="flex: 1; text-align: left;">
+                                        <div style="font-weight: bold; font-size: 1.1rem; color: var(--text-primary);">${team.name}</div>
+                                        ${team.leader ? `<div style="font-size: 0.85rem; color: var(--text-secondary);">Líder: ${team.leader}</div>` : ''}
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: bold; font-size: 1.2rem; color: ${result.won ? 'var(--accent-green)' : result.prize > 0 ? 'var(--accent-gold)' : '#ef4444'};">
+                                            ${result.won ? '🏆 R$ 1.000.000' : 'R$ ' + result.prize.toLocaleString()}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                            ${result.won ? 'MILIONÁRIO!' : result.prize === 0 ? 'Eliminado' : 'Desistiu'}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div style="display: flex; gap: 20px; justify-content: center;">
+                        <button class="btn btn-secondary" onclick="showMenu()">🏠 Menu</button>
+                        <button class="btn btn-primary" onclick="loadMilhaoGame()">🔄 Jogar Novamente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 function confirmMilhaoExit() {
-    if (confirm(`Deseja desistir e levar R$ ${milhaoState.prize.toLocaleString()}?`)) {
-        milhaoEnd(false);
+    const currentTeam = milhaoGetCurrentTeam();
+    const teamName = currentTeam ? currentTeam.team.name : 'Equipe';
+    
+    if (confirm(`${teamName} deseja desistir e levar R$ ${milhaoState.prize.toLocaleString()}?`)) {
+        // Registrar resultado da equipe
+        if (milhaoState.teamsResults[milhaoState.currentTeamIndex]) {
+            milhaoState.teamsResults[milhaoState.currentTeamIndex].prize = milhaoState.prize;
+            milhaoState.teamsResults[milhaoState.currentTeamIndex].won = false;
+            milhaoState.teamsResults[milhaoState.currentTeamIndex].played = true;
+        }
+        
+        milhaoTeamGaveUp();
     }
+}
+
+// Quando a equipe desiste
+function milhaoTeamGaveUp() {
+    const currentTeam = milhaoGetCurrentTeam();
+    const teamName = currentTeam ? currentTeam.team.name : 'Equipe';
+    const teamColor = currentTeam ? currentTeam.color : { color: 'var(--accent-gold)' };
+    const hasMoreTeams = milhaoState.currentTeamIndex < milhaoState.teamsOrder.length - 1;
+    
+    document.getElementById('gameContainer').innerHTML = `
+        <div class="game-screen active">
+            <div class="game-content">
+                <div class="end-container" style="text-align: center;">
+                    <span class="trophy-icon">💰</span>
+                    <h2 class="winner-title" style="color: var(--accent-gold);">Desistiu!</h2>
+                    
+                    <div style="background: ${teamColor.color}; padding: 20px 40px; border-radius: 15px; display: inline-block; margin: 20px 0; ${teamColor.textColor ? 'color:' + teamColor.textColor : 'color: white'}">
+                        <div style="font-size: 1.5rem; font-weight: bold;">${teamName}</div>
+                    </div>
+                    
+                    <p style="color: var(--accent-gold); font-size: 2rem; font-weight: bold; margin-bottom: 10px;">R$ ${milhaoState.prize.toLocaleString()}</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 30px;">Preferiu garantir o prêmio!</p>
+                    
+                    ${hasMoreTeams ? `
+                        <button class="btn btn-primary" onclick="milhaoStartNextTeam()" style="font-size: 1.2rem; padding: 15px 40px;">
+                            ➡️ Próxima Equipe
+                        </button>
+                    ` : `
+                        <button class="btn btn-primary" onclick="milhaoShowFinalResults()" style="font-size: 1.2rem; padding: 15px 40px;">
+                            🏆 Ver Resultado Final
+                        </button>
+                    `}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    window.syncToProjection && window.syncToProjection(200);
 }
 // ========== QUEM SOU EU? BÍBLICO ==========
 
