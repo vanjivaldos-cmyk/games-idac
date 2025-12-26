@@ -423,8 +423,8 @@
         /* Admin indicator */
         .admin-indicator {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            bottom: 20px;
+            left: 20px;
             background: rgba(220, 38, 38, 0.9);
             color: white;
             padding: 8px 15px;
@@ -439,8 +439,8 @@
         
         .projection-indicator {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            bottom: 20px;
+            left: 20px;
             background: rgba(34, 197, 94, 0.9);
             color: white;
             padding: 8px 15px;
@@ -1575,13 +1575,24 @@
             });
         }
         
-        function checkPassword() {
+        async function checkPassword() {
             const input = document.getElementById('adminPassword').value;
             if (input === ADMIN_PASSWORD) {
+                // Verificar se já tem admin ativo
+                const available = await checkAdminAvailable();
+                if (!available) {
+                    document.getElementById('passwordError').textContent = '⚠️ Já existe um Admin conectado!';
+                    document.getElementById('passwordError').style.display = 'block';
+                    document.getElementById('adminPassword').value = '';
+                    return;
+                }
+                
                 sessionStorage.setItem('adminAuth', 'true');
                 document.getElementById('passwordOverlay').remove();
+                registerAsAdmin();
                 selectMode('admin');
             } else {
+                document.getElementById('passwordError').textContent = '❌ Senha incorreta!';
                 document.getElementById('passwordError').style.display = 'block';
                 document.getElementById('adminPassword').value = '';
                 document.getElementById('adminPassword').focus();
@@ -1593,6 +1604,31 @@
         }
         
         function setupProjectionMode() {
+            // Buscar equipes do Firebase (do Admin)
+            if (window.firebaseReady) {
+                window.database.ref('teams_config').once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data && data.teams) {
+                        globalTeams = data.teams;
+                        localStorage.setItem('idacTeams', JSON.stringify(globalTeams));
+                        // Atualizar tela se necessário
+                        if (document.getElementById('teamsConfig').style.display !== 'none') {
+                            initTeams();
+                            renderTeamsConfig();
+                        }
+                    }
+                });
+                
+                // Escutar mudanças nas equipes
+                window.database.ref('teams_config').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data && data.teams) {
+                        globalTeams = data.teams;
+                        localStorage.setItem('idacTeams', JSON.stringify(globalTeams));
+                    }
+                });
+            }
+            
             // Aplicar restrições iniciais
             applyProjectionRestrictions();
             
@@ -1752,15 +1788,26 @@
             }
         }
         
-        function checkMode() {
+        async function checkMode() {
             const savedMode = localStorage.getItem('idacMode');
             if (savedMode) {
                 // Se for admin, verificar se tem autenticação na sessão
                 if (savedMode === 'admin') {
                     const savedAuth = sessionStorage.getItem('adminAuth');
                     if (savedAuth === 'true') {
-                        window.currentMode = 'admin';
-                        selectMode('admin');
+                        // Verificar se pode ser admin
+                        const available = await checkAdminAvailable();
+                        if (available) {
+                            registerAsAdmin();
+                            window.currentMode = 'admin';
+                            selectMode('admin');
+                        } else {
+                            // Já tem outro admin
+                            alert('Já existe um Admin conectado! Entrando como Projeção.');
+                            localStorage.setItem('idacMode', 'projection');
+                            window.currentMode = 'projection';
+                            selectMode('projection');
+                        }
                     } else {
                         // Não tem auth, voltar para seleção
                         localStorage.removeItem('idacMode');
@@ -1786,6 +1833,7 @@
         // Força reset completo - volta para tela inicial (só Admin)
         function forceReset() {
             if (confirm('Voltar para a tela de seleção de modo?')) {
+                releaseAdmin();
                 localStorage.removeItem('idacMode');
                 localStorage.removeItem('idacTeams');
                 sessionStorage.removeItem('adminAuth');
@@ -1842,8 +1890,8 @@
                 document.getElementById('numTeams').value = globalTeams.length;
             } else {
                 globalTeams = [
-                    { name: 'Equipe Vermelha', colorIndex: 0 },
-                    { name: 'Equipe Azul', colorIndex: 1 }
+                    { name: 'Tribo de Judá', colorIndex: 0, leader: '' },
+                    { name: 'Tribo de Rúben', colorIndex: 1, leader: '' }
                 ];
             }
             updateTeamSelectors();
@@ -1903,6 +1951,14 @@
         
         function saveTeamsConfig() {
             localStorage.setItem('idacTeams', JSON.stringify(globalTeams));
+            
+            // Sincronizar equipes via Firebase para Projeção
+            if (window.firebaseReady && window.currentMode === 'admin') {
+                window.database.ref('teams_config').set({
+                    teams: globalTeams,
+                    updatedAt: Date.now()
+                });
+            }
             Utils.showFeedback('correct', '✅', 'Equipes salvas!', 1500);
         }
         
@@ -2222,7 +2278,8 @@ function renderMusicaRound() {
                 <div class="scoreboard" style="display: flex; gap: 10px; flex-wrap: wrap;">
                     ${globalTeams.map((team, i) => `
                         <div class="team-score" style="background: ${teamColors[team.colorIndex].color.includes('gradient') ? teamColors[team.colorIndex].color : teamColors[team.colorIndex].color}; min-width: 80px; padding: 8px 12px; border-radius: 10px; text-align: center;">
-                            <div class="team-name" style="font-size: 0.7rem; opacity: 0.9;">${team.name.split(' ').slice(-1)[0]}</div>
+                            <div class="team-name" style="font-size: 0.7rem; opacity: 0.9;">${getShortName(team)}</div>
+                            <div style="font-size: 0.55rem; opacity: 0.7;">${team.leader || ''}</div>
                             <div class="team-points" style="font-size: 1.2rem; font-weight: bold;">${musicaState.current.scores[i] || 0}</div>
                         </div>
                     `).join('')}
@@ -2263,7 +2320,7 @@ function renderMusicaRound() {
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 30px;" id="musicaActions">
                     ${globalTeams.map((team, i) => `
                         <button class="btn btn-success" onclick="musicaCorrect(${i})" style="background: ${teamColors[team.colorIndex].color.includes('gradient') ? teamColors[team.colorIndex].color : teamColors[team.colorIndex].color};">
-                            👏 ${team.name.split(' ').slice(-1)[0]}
+                            👏 ${getShortName(team)}
                         </button>
                     `).join('')}
                     <button class="btn btn-danger" onclick="musicaWrong()">❌ Ninguém</button>
@@ -2304,6 +2361,9 @@ function musicaCorrect(teamIndex) {
     
     musicaState.current.scores[teamIndex]++;
     
+    // Atualizar placar visualmente imediatamente
+    updateScoreboardDisplay();
+    
     Utils.showFeedback('correct', '👏', globalTeams[teamIndex].name + ' Acertou!');
     Utils.createConfetti();
     musicaRevealAnswer();
@@ -2316,6 +2376,16 @@ function musicaCorrect(teamIndex) {
             window.adminSendCommand('syncHTML', { html: document.getElementById('gameContainer').innerHTML });
         }, 500);
     }
+}
+
+// Função para atualizar placar visualmente
+function updateScoreboardDisplay() {
+    const scoreElements = document.querySelectorAll('.scoreboard .team-score .team-points');
+    scoreElements.forEach((el, i) => {
+        if (musicaState.current.scores[i] !== undefined) {
+            el.textContent = musicaState.current.scores[i];
+        }
+    });
 }
 
 function musicaWrong() {
@@ -2372,6 +2442,7 @@ function musicaEndGame() {
                             <div class="final-score-item" style="background: ${teamColors[r.team.colorIndex].color.includes('gradient') ? teamColors[r.team.colorIndex].color : teamColors[r.team.colorIndex].color}; padding: 15px 20px; border-radius: 15px; min-width: 100px; text-align: center;">
                                 <div style="font-size: 1.5rem;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🏅'}</div>
                                 <div class="final-score-label" style="font-size: 0.85rem;">${r.team.name}</div>
+                                <div style="font-size: 0.7rem; opacity: 0.8;">${r.team.leader || ''}</div>
                                 <div class="final-score-value" style="font-size: 1.5rem; font-weight: bold;">${r.score}</div>
                             </div>
                         `).join('')}
@@ -2854,7 +2925,7 @@ function renderPassaSetup() {
                     <div class="form-group">
                         <label class="form-label">Equipes (configuradas no menu)</label>
                         <div style="background: rgba(0,212,255,0.1); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 15px;">
-                            ${globalTeams.slice(0,2).map((t, i) => '<div style="padding: 5px 0;">• ' + t.name + (t.leader ? ' (' + t.leader + ')' : '') + '</div>').join('')}
+                            ${globalTeams.map((t, i) => '<div style="padding: 5px 0;">• ' + t.name + (t.leader ? ' (' + t.leader + ')' : '') + '</div>').join('')}
                         </div>
                     </div>
                     
@@ -2943,7 +3014,8 @@ function renderPassaQuestion() {
                 <div class="scoreboard" style="display: flex; gap: 8px; flex-wrap: wrap;">
                     ${globalTeams.map((team, i) => `
                         <div class="team-score" style="background: ${teamColors[team.colorIndex].color.includes('gradient') ? teamColors[team.colorIndex].color : teamColors[team.colorIndex].color}; min-width: 70px; padding: 6px 10px; border-radius: 8px; text-align: center; ${passaState.current.turn === i ? 'box-shadow: 0 0 15px white;' : ''}">
-                            <div style="font-size: 0.65rem;">${team.name.split(' ').slice(-1)[0]}</div>
+                            <div style="font-size: 0.65rem;">${getShortName(team)}</div>
+                            <div style="font-size: 0.5rem; opacity: 0.7;">${team.leader || ''}</div>
                             <div style="font-size: 1.1rem; font-weight: bold;">${passaState.current.scores[i] || 0}</div>
                         </div>
                     `).join('')}
@@ -2984,7 +3056,7 @@ function renderPassaQuestion() {
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px;" id="passaButtons">
                     ${globalTeams.map((team, i) => `
                         <button class="btn" onclick="passaTeamCorrect(${i})" style="background: ${teamColors[team.colorIndex].color.includes('gradient') ? teamColors[team.colorIndex].color : teamColors[team.colorIndex].color}; padding: 10px 15px;">
-                            ✅ ${team.name.split(' ').slice(-1)[0]}
+                            ✅ ${getShortName(team)}
                         </button>
                     `).join('')}
                 </div>
@@ -3011,6 +3083,9 @@ function passaNextTeam() {
 function passaTeamCorrect(teamIndex) {
     passaState.current.scores[teamIndex]++;
     
+    // Atualizar placar visualmente imediatamente
+    updatePassaScoreboard();
+    
     Utils.showFeedback('correct', '🎉', globalTeams[teamIndex].name + ' Acertou!');
     Utils.createConfetti(30);
     
@@ -3026,6 +3101,16 @@ function passaTeamCorrect(teamIndex) {
             window.adminSendCommand('syncHTML', { html: document.getElementById('gameContainer').innerHTML });
         }, 500);
     }
+}
+
+function updatePassaScoreboard() {
+    const scoreElements = document.querySelectorAll('.scoreboard .team-score');
+    scoreElements.forEach((el, i) => {
+        const pointsEl = el.querySelector('div:nth-child(2)');
+        if (pointsEl && passaState.current.scores[i] !== undefined) {
+            pointsEl.textContent = passaState.current.scores[i];
+        }
+    });
 }
 
 function passaShowAnswer() {
@@ -3080,6 +3165,7 @@ function passaEndGame() {
                             <div class="final-score-item" style="background: ${teamColors[r.team.colorIndex].color}; padding: 15px 20px; border-radius: 15px; min-width: 100px; text-align: center;">
                                 <div style="font-size: 1.5rem;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🏅'}</div>
                                 <div style="font-size: 0.85rem;">${r.team.name}</div>
+                                <div style="font-size: 0.7rem; opacity: 0.8;">${r.team.leader || ''}</div>
                                 <div style="font-size: 1.5rem; font-weight: bold;">${r.score}</div>
                             </div>
                         `).join('')}
@@ -3167,7 +3253,7 @@ function renderRodaSetup() {
                     <div class="form-group">
                         <label class="form-label">Equipes (configuradas no menu)</label>
                         <div style="background: rgba(0,212,255,0.1); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 15px;">
-                            ${globalTeams.slice(0,2).map((t, i) => '<div style="padding: 5px 0;">• ' + t.name + (t.leader ? ' (' + t.leader + ')' : '') + '</div>').join('')}
+                            ${globalTeams.map((t, i) => '<div style="padding: 5px 0;">• ' + t.name + (t.leader ? ' (' + t.leader + ')' : '') + '</div>').join('')}
                         </div>
                     </div>
                     
@@ -3284,7 +3370,8 @@ function renderRodaGame() {
                 <div class="scoreboard" style="display: flex; gap: 8px; flex-wrap: wrap;">
                     ${globalTeams.map((team, i) => `
                         <div class="team-score" style="background: ${teamColors[team.colorIndex].color}; min-width: 70px; padding: 6px 10px; border-radius: 8px; text-align: center; ${rodaState.current.turn === i ? 'box-shadow: 0 0 15px white;' : ''}">
-                            <div style="font-size: 0.65rem;">${team.name.split(' ').slice(-1)[0]}</div>
+                            <div style="font-size: 0.65rem;">${getShortName(team)}</div>
+                            <div style="font-size: 0.5rem; opacity: 0.7;">${team.leader || ''}</div>
                             <div style="font-size: 1.1rem; font-weight: bold;">${rodaState.current.scores[i] || 0}</div>
                         </div>
                     `).join('')}
@@ -3495,6 +3582,7 @@ function rodaEndGame() {
                             <div class="final-score-item" style="background: ${teamColors[r.team.colorIndex].color}; padding: 15px 20px; border-radius: 15px; min-width: 100px; text-align: center;">
                                 <div style="font-size: 1.5rem;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🏅'}</div>
                                 <div style="font-size: 0.85rem;">${r.team.name}</div>
+                                <div style="font-size: 0.7rem; opacity: 0.8;">${r.team.leader || ''}</div>
                                 <div style="font-size: 1.5rem; font-weight: bold;">$${r.score}</div>
                             </div>
                         `).join('')}
@@ -4157,7 +4245,7 @@ function renderQuemSetup() {
                     <div class="form-group">
                         <label class="form-label">Equipes (configuradas no menu)</label>
                         <div style="background: rgba(0,212,255,0.1); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 15px;">
-                            ${globalTeams.slice(0,2).map((t, i) => '<div style="padding: 5px 0;">• ' + t.name + (t.leader ? ' (' + t.leader + ')' : '') + '</div>').join('')}
+                            ${globalTeams.map((t, i) => '<div style="padding: 5px 0;">• ' + t.name + (t.leader ? ' (' + t.leader + ')' : '') + '</div>').join('')}
                         </div>
                     </div>
                     
@@ -4221,7 +4309,8 @@ function renderQuemRound() {
                 <div class="scoreboard" style="display: flex; gap: 8px; flex-wrap: wrap;">
                     ${globalTeams.map((team, i) => `
                         <div class="team-score" style="background: ${teamColors[team.colorIndex].color}; min-width: 70px; padding: 6px 10px; border-radius: 8px; text-align: center; ${quemState.current.turn === i ? 'box-shadow: 0 0 15px white;' : ''}">
-                            <div style="font-size: 0.65rem;">${team.name.split(' ').slice(-1)[0]}</div>
+                            <div style="font-size: 0.65rem;">${getShortName(team)}</div>
+                            <div style="font-size: 0.5rem; opacity: 0.7;">${team.leader || ''}</div>
                             <div style="font-size: 1.1rem; font-weight: bold;">${quemState.current.scores[i] || 0}</div>
                         </div>
                     `).join('')}
@@ -4359,6 +4448,7 @@ function quemEndGame() {
                             <div class="final-score-item" style="background: ${teamColors[r.team.colorIndex].color}; padding: 15px 20px; border-radius: 15px; min-width: 100px; text-align: center;">
                                 <div style="font-size: 1.5rem;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🏅'}</div>
                                 <div style="font-size: 0.85rem;">${r.team.name}</div>
+                                <div style="font-size: 0.7rem; opacity: 0.8;">${r.team.leader || ''}</div>
                                 <div style="font-size: 1.5rem; font-weight: bold;">${r.score}</div>
                             </div>
                         `).join('')}
