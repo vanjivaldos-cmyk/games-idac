@@ -1512,7 +1512,39 @@
         }
         
         function setupProjectionMode() {
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            // Aplicar restrições iniciais
+            applyProjectionRestrictions();
+            
+            // Observar mudanças no DOM para manter restrições
+            const observer = new MutationObserver(() => {
+                applyProjectionRestrictions();
+            });
+            observer.observe(document.getElementById('gameContainer'), { 
+                childList: true, 
+                subtree: true 
+            });
+        }
+        
+        function applyProjectionRestrictions() {
+            if (window.currentMode !== 'projection') return;
+            
+            // Esconder elementos admin-only
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Esconder botões de sair/voltar
+            document.querySelectorAll('.btn-back, [onclick*="Exit"], [onclick*="confirm"]').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Desabilitar todos os botões e inputs no game-content
+            document.querySelectorAll('#gameContainer button, #gameContainer input, #gameContainer select, #gameContainer .option-item').forEach(el => {
+                el.style.pointerEvents = 'none';
+                if (el.tagName === 'BUTTON') {
+                    el.disabled = true;
+                }
+            });
         }
         
         function setupFirebaseListener() {
@@ -1531,15 +1563,74 @@
                 switch(data.command) {
                     case 'loadGame':
                         loadGame(data.game);
+                        setTimeout(applyProjectionRestrictions, 100);
+                        break;
+                    case 'startGame':
+                        // Iniciar jogo específico
+                        if (data.game === 'musica') startMusicaGame();
+                        if (data.game === 'passa') startPassaGame();
+                        if (data.game === 'roda') startRodaGame();
+                        if (data.game === 'milhao') startMilhaoGame();
+                        if (data.game === 'quem') startQuemGame();
+                        if (data.game === 'bingo') startBingoGame();
+                        if (data.game === 'cabine') startCabineGame();
+                        setTimeout(applyProjectionRestrictions, 100);
+                        break;
+                    case 'updateState':
+                        // Atualizar estado do jogo
+                        updateGameState(data);
                         break;
                     case 'revealAnswer':
                         revealAnswerOnProjection(data);
                         break;
+                    case 'showFeedback':
+                        Utils.showFeedback(data.type, data.emoji, data.text);
+                        break;
+                    case 'confetti':
+                        Utils.createConfetti(data.amount || 50);
+                        break;
+                    case 'nextRound':
+                        handleNextRound(data);
+                        break;
+                    case 'endGame':
+                        handleEndGame(data);
+                        break;
                     case 'backToMenu':
                         showMenu();
                         break;
+                    case 'syncHTML':
+                        // Sincronizar HTML diretamente
+                        if (data.html) {
+                            document.getElementById('gameContainer').innerHTML = data.html;
+                            setTimeout(applyProjectionRestrictions, 50);
+                        }
+                        break;
                 }
             }
+        }
+        
+        function updateGameState(data) {
+            if (data.gameType === 'musica' && data.state) {
+                Object.assign(musicaState.current, data.state);
+                renderMusicaRound();
+            }
+            if (data.gameType === 'passa' && data.state) {
+                Object.assign(passaState.current, data.state);
+                renderPassaQuestion();
+            }
+            setTimeout(applyProjectionRestrictions, 100);
+        }
+        
+        function handleNextRound(data) {
+            if (data.game === 'musica') musicaNextRound();
+            if (data.game === 'passa') passaNextQuestion();
+            setTimeout(applyProjectionRestrictions, 100);
+        }
+        
+        function handleEndGame(data) {
+            if (data.game === 'musica') musicaEndGame();
+            if (data.game === 'passa') passaEndGame();
+            setTimeout(applyProjectionRestrictions, 100);
         }
         
         window.adminSendCommand = function(type, data = {}) {
@@ -1550,6 +1641,24 @@
                     timestamp: Date.now()
                 });
             }
+        }
+        
+        // Sincronizar tela com projeção
+        window.syncToProjection = function(delay = 100) {
+            if (window.currentMode === 'admin') {
+                setTimeout(() => {
+                    const html = document.getElementById('gameContainer').innerHTML;
+                    window.adminSendCommand('syncHTML', { html: html });
+                }, delay);
+            }
+        }
+        
+        // Wrapper para botões - sincroniza após clique
+        window.adminAction = function(callback) {
+            return function(...args) {
+                callback(...args);
+                window.syncToProjection(200);
+            };
         }
         
         function revealAnswerOnProjection(data) {
@@ -1935,8 +2044,7 @@ function startMusicaGame() {
         return;
     }
     
-    musicaState.config.team1Name = globalTeams[0] ? globalTeams[0].name : 'Equipe 1';
-    musicaState.config.team2Name = globalTeams[1] ? globalTeams[1].name : 'Equipe 2';
+
     
     musicaState.current = {
         round: 1,
@@ -2024,6 +2132,7 @@ function renderMusicaRound() {
     `;
     
     startMusicaTimer();
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 function startMusicaTimer() {
@@ -2052,10 +2161,22 @@ function musicaCorrect(teamIndex) {
     Utils.showFeedback('correct', '👏', globalTeams[teamIndex].name + ' Acertou!');
     Utils.createConfetti();
     musicaRevealAnswer();
+    
+    // Sincronizar com projeção
+    if (window.currentMode === 'admin') {
+        window.adminSendCommand('showFeedback', { type: 'correct', emoji: '👏', text: globalTeams[teamIndex].name + ' Acertou!' });
+        window.adminSendCommand('confetti', { amount: 50 });
+        setTimeout(() => {
+            window.adminSendCommand('syncHTML', { html: document.getElementById('gameContainer').innerHTML });
+        }, 500);
+    }
 }
 
 function musicaWrong() {
     Utils.showFeedback('wrong', '❌', 'Errou!');
+    if (window.currentMode === 'admin') {
+        window.adminSendCommand('showFeedback', { type: 'wrong', emoji: '❌', text: 'Errou!' });
+    }
 }
 
 function musicaShowHint() {
@@ -2067,9 +2188,11 @@ function musicaRevealAnswer() {
     document.getElementById('musicaAnswer').style.display = 'block';
     document.getElementById('musicaActions').style.display = 'none';
     document.getElementById('musicaNext').style.display = 'flex';
+    window.syncToProjection && window.syncToProjection(100);
 }
 
 function musicaNextRound() {
+    // Sincronizar com projeção antes de renderizar
     if (musicaState.current.round >= musicaState.config.totalRounds) {
         musicaEndGame();
     } else {
@@ -2414,6 +2537,7 @@ function drawBingoItem() {
             const finalItem = available[Math.floor(Math.random() * available.length)];
             bingoState.currentItem = finalItem;
             bingoState.drawnItems.push(finalItem);
+            window.syncToProjection && window.syncToProjection(300);
             renderBingoPlay();
             Utils.showFeedback('correct', finalItem.emoji, finalItem.name, 2000);
         }
@@ -2729,6 +2853,7 @@ function renderPassaQuestion() {
             </div>
         </div>
     `;
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 function passaNextTeam() {
@@ -2746,6 +2871,15 @@ function passaTeamCorrect(teamIndex) {
     document.getElementById('passaAnswer').style.display = 'block';
     document.getElementById('passaButtons').style.display = 'none';
     document.getElementById('passaNext').style.display = 'flex';
+    
+    // Sincronizar com projeção
+    if (window.currentMode === 'admin') {
+        window.adminSendCommand('showFeedback', { type: 'correct', emoji: '🎉', text: globalTeams[teamIndex].name + ' Acertou!' });
+        window.adminSendCommand('confetti', { amount: 30 });
+        setTimeout(() => {
+            window.adminSendCommand('syncHTML', { html: document.getElementById('gameContainer').innerHTML });
+        }, 500);
+    }
 }
 
 function passaShowAnswer() {
@@ -2755,7 +2889,7 @@ function passaShowAnswer() {
 }
 
 function passaWrong() {
-    const losingTeam = passaState.current.turn === 1 ? passaState.config.team1Name : passaState.config.team2Name;
+    const losingTeam = globalTeams[passaState.current.turn] ? globalTeams[passaState.current.turn].name : 'Equipe';
     
     if (passaState.current.repassed) {
         Utils.showFeedback('wrong', '🥧', `${losingTeam} paga castigo!`, 2000);
@@ -2778,11 +2912,12 @@ function passaNextQuestion() {
 }
 
 function passaEndGame() {
-    const winner = passaState.current.team1Score > passaState.current.team2Score 
-        ? passaState.config.team1Name 
-        : passaState.current.team2Score > passaState.current.team1Score 
-            ? passaState.config.team2Name 
-            : 'Empate!';
+    const maxScore = Math.max(...passaState.current.scores);
+    const winners = globalTeams.filter((t, i) => passaState.current.scores[i] === maxScore);
+    const winnerText = winners.length > 1 ? 'Empate!' : winners[0].name;
+    
+    const ranking = globalTeams.map((t, i) => ({ team: t, score: passaState.current.scores[i] }))
+        .sort((a, b) => b.score - a.score);
     
     Utils.createConfetti(100);
     
@@ -2792,17 +2927,16 @@ function passaEndGame() {
                 <div class="end-container">
                     <span class="trophy-icon">🏆</span>
                     <h2 class="winner-title">Fim de Jogo!</h2>
-                    <p class="winner-name">${winner}</p>
+                    <p class="winner-name">${winnerText}</p>
                     
-                    <div class="final-scores">
-                        <div class="final-score-item team1">
-                            <div class="final-score-label">${passaState.config.team1Name}</div>
-                            <div class="final-score-value">${passaState.current.team1Score}</div>
-                        </div>
-                        <div class="final-score-item team2">
-                            <div class="final-score-label">${passaState.config.team2Name}</div>
-                            <div class="final-score-value">${passaState.current.team2Score}</div>
-                        </div>
+                    <div class="final-scores" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
+                        ${ranking.map((r, i) => `
+                            <div class="final-score-item" style="background: ${teamColors[r.team.colorIndex].color}; padding: 15px 20px; border-radius: 15px; min-width: 100px; text-align: center;">
+                                <div style="font-size: 1.5rem;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🏅'}</div>
+                                <div style="font-size: 0.85rem;">${r.team.name}</div>
+                                <div style="font-size: 1.5rem; font-weight: bold;">${r.score}</div>
+                            </div>
+                        `).join('')}
                     </div>
                     
                     <div style="display: flex; gap: 20px; justify-content: center;">
@@ -2858,18 +2992,18 @@ const rodaVowels = ['A', 'E', 'I', 'O', 'U'];
 const rodaConsonants = ['B','C','D','F','G','H','J','K','L','M','N','P','Q','R','S','T','V','W','X','Y','Z'];
 
 let rodaState = {
-    config: { team1Name: '', team2Name: '' },
+    config: {},
     current: {
         phrase: null,
         revealed: [],
-        team1Score: 0,
-        team2Score: 0,
-        turn: 1,
+        scores: [],
+        turn: 0,
         roundScore: 0,
         usedLetters: [],
         round: 1,
         totalRounds: 5,
-        usedPhrases: []
+        usedPhrases: [],
+        spinValue: 0
     }
 };
 
@@ -2912,15 +3046,11 @@ function renderRodaSetup() {
 }
 
 function startRodaGame() {
-    rodaState.config.team1Name = globalTeams[0] ? globalTeams[0].name : 'Equipe 1';
-    rodaState.config.team2Name = globalTeams[1] ? globalTeams[1].name : 'Equipe 2';
-    
     rodaState.current = {
         phrase: null,
         revealed: [],
-        team1Score: 0,
-        team2Score: 0,
-        turn: 1,
+        scores: globalTeams.map(() => 0),
+        turn: 0,
         roundScore: 0,
         usedLetters: [],
         round: 1,
@@ -2949,7 +3079,7 @@ function loadRodaRound() {
 
 function renderRodaGame() {
     const phrase = rodaState.current.phrase;
-    const currentTeam = rodaState.current.turn === 1 ? rodaState.config.team1Name : rodaState.config.team2Name;
+    const currentTeam = globalTeams[rodaState.current.turn] ? globalTeams[rodaState.current.turn].name : 'Equipe';
     
     // Renderizar frase
     let phraseDisplay = '';
@@ -3005,15 +3135,13 @@ function renderRodaGame() {
             <div class="game-header">
                 <button class="btn-back" onclick="confirmRodaExit()">← Sair</button>
                 <div class="game-title-header">🎡 Roda Bíblica</div>
-                <div class="scoreboard">
-                    <div class="team-score team1" style="${rodaState.current.turn === 1 ? 'box-shadow: 0 0 20px var(--accent-orange);' : ''}">
-                        <div class="team-name">${rodaState.config.team1Name}</div>
-                        <div class="team-points">${rodaState.current.team1Score}</div>
-                    </div>
-                    <div class="team-score team2" style="${rodaState.current.turn === 2 ? 'box-shadow: 0 0 20px var(--accent-cyan);' : ''}">
-                        <div class="team-name">${rodaState.config.team2Name}</div>
-                        <div class="team-points">${rodaState.current.team2Score}</div>
-                    </div>
+                <div class="scoreboard" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    ${globalTeams.map((team, i) => `
+                        <div class="team-score" style="background: ${teamColors[team.colorIndex].color}; min-width: 70px; padding: 6px 10px; border-radius: 8px; text-align: center; ${rodaState.current.turn === i ? 'box-shadow: 0 0 15px white;' : ''}">
+                            <div style="font-size: 0.65rem;">${team.name.split(' ').slice(-1)[0]}</div>
+                            <div style="font-size: 1.1rem; font-weight: bold;">${rodaState.current.scores[i] || 0}</div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
             
@@ -3084,7 +3212,7 @@ function rodaSpin() {
                 document.getElementById('rodaSpinValue').textContent = '💀 PERDEU A VEZ!';
                 Utils.showFeedback('wrong', '💀', 'Perdeu a vez!', 1500);
                 rodaState.current.roundScore = 0;
-                rodaState.current.turn = rodaState.current.turn === 1 ? 2 : 1;
+                rodaState.current.turn = (rodaState.current.turn + 1) % globalTeams.length;
                 setTimeout(renderRodaGame, 1500);
             } else {
                 rodaState.current.spinValue = finalVal;
@@ -3115,7 +3243,7 @@ function rodaSelectLetter(letter) {
         Utils.showFeedback('correct', '✅', `${count}x $${rodaState.current.spinValue}!`, 1000);
     } else {
         Utils.showFeedback('wrong', '❌', 'Não tem!', 1000);
-        rodaState.current.turn = rodaState.current.turn === 1 ? 2 : 1;
+        rodaState.current.turn = (rodaState.current.turn + 1) % globalTeams.length;
     }
     
     rodaState.current.spinValue = 0;
@@ -3173,20 +3301,17 @@ function rodaTrySolve() {
         rodaWinRound();
     } else {
         Utils.showFeedback('wrong', '❌', 'Errado!', 1500);
-        rodaState.current.turn = rodaState.current.turn === 1 ? 2 : 1;
+        rodaState.current.turn = (rodaState.current.turn + 1) % globalTeams.length;
         rodaState.current.spinValue = 0;
         setTimeout(renderRodaGame, 1500);
     }
 }
 
 function rodaWinRound() {
-    if (rodaState.current.turn === 1) {
-        rodaState.current.team1Score += rodaState.current.roundScore;
-    } else {
-        rodaState.current.team2Score += rodaState.current.roundScore;
-    }
+    rodaState.current.scores[rodaState.current.turn] += rodaState.current.roundScore;
     
-    Utils.showFeedback('correct', '🎉', `+$${rodaState.current.roundScore}!`, 2000);
+    const teamName = globalTeams[rodaState.current.turn].name;
+    Utils.showFeedback('correct', '🎉', `${teamName} +$${rodaState.current.roundScore}!`, 2000);
     Utils.createConfetti(40);
     
     setTimeout(() => {
@@ -3197,14 +3322,17 @@ function rodaWinRound() {
             loadRodaRound();
         }
     }, 2000);
+    
+    window.syncToProjection && window.syncToProjection(500);
 }
 
 function rodaEndGame() {
-    const winner = rodaState.current.team1Score > rodaState.current.team2Score 
-        ? rodaState.config.team1Name 
-        : rodaState.current.team2Score > rodaState.current.team1Score 
-            ? rodaState.config.team2Name 
-            : 'Empate!';
+    const maxScore = Math.max(...rodaState.current.scores);
+    const winners = globalTeams.filter((t, i) => rodaState.current.scores[i] === maxScore);
+    const winnerText = winners.length > 1 ? 'Empate!' : winners[0].name;
+    
+    const ranking = globalTeams.map((t, i) => ({ team: t, score: rodaState.current.scores[i] }))
+        .sort((a, b) => b.score - a.score);
     
     Utils.createConfetti(100);
     
@@ -3214,20 +3342,19 @@ function rodaEndGame() {
                 <div class="end-container">
                     <span class="trophy-icon">🏆</span>
                     <h2 class="winner-title">Fim de Jogo!</h2>
-                    <p class="winner-name">${winner}</p>
+                    <p class="winner-name">${winnerText}</p>
                     
-                    <div class="final-scores">
-                        <div class="final-score-item team1">
-                            <div class="final-score-label">${rodaState.config.team1Name}</div>
-                            <div class="final-score-value">$${rodaState.current.team1Score}</div>
-                        </div>
-                        <div class="final-score-item team2">
-                            <div class="final-score-label">${rodaState.config.team2Name}</div>
-                            <div class="final-score-value">$${rodaState.current.team2Score}</div>
-                        </div>
+                    <div class="final-scores" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
+                        ${ranking.map((r, i) => `
+                            <div class="final-score-item" style="background: ${teamColors[r.team.colorIndex].color}; padding: 15px 20px; border-radius: 15px; min-width: 100px; text-align: center;">
+                                <div style="font-size: 1.5rem;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🏅'}</div>
+                                <div style="font-size: 0.85rem;">${r.team.name}</div>
+                                <div style="font-size: 1.5rem; font-weight: bold;">$${r.score}</div>
+                            </div>
+                        `).join('')}
                     </div>
                     
-                    <div style="display: flex; gap: 20px; justify-content: center;">
+                    <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
                         <button class="btn btn-secondary" onclick="showMenu()">🏠 Menu</button>
                         <button class="btn btn-primary" onclick="renderRodaSetup()">🔄 Jogar Novamente</button>
                     </div>
@@ -3235,6 +3362,8 @@ function rodaEndGame() {
             </div>
         </div>
     `;
+    
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 function confirmRodaExit() {
@@ -3857,14 +3986,13 @@ const quemCharacters = [
 ];
 
 let quemState = {
-    config: { team1Name: 'Equipe 1', team2Name: 'Equipe 2', rounds: 6 },
+    config: { rounds: 6 },
     current: {
         round: 1,
-        team1Score: 0,
-        team2Score: 0,
+        scores: [],
         character: null,
         hintIndex: 0,
-        turn: 1,
+        turn: 0,
         usedCharacters: []
     }
 };
@@ -3908,13 +4036,10 @@ function renderQuemSetup() {
 }
 
 function startQuemGame() {
-    quemState.config.team1Name = globalTeams[0] ? globalTeams[0].name : 'Equipe 1';
-    quemState.config.team2Name = globalTeams[1] ? globalTeams[1].name : 'Equipe 2';
+
     
     quemState.current = {
         round: 1,
-        team1Score: 0,
-        team2Score: 0,
         character: null,
         hintIndex: 0,
         turn: 1,
@@ -3939,7 +4064,7 @@ function loadQuemRound() {
 
 function renderQuemRound() {
     const char = quemState.current.character;
-    const currentTeam = quemState.current.turn === 1 ? quemState.config.team1Name : quemState.config.team2Name;
+    const currentTeam = globalTeams[quemState.current.turn] ? globalTeams[quemState.current.turn].name : 'Equipe';
     const points = 7 - quemState.current.hintIndex;
     
     document.getElementById('gameContainer').innerHTML = `
@@ -3947,15 +4072,13 @@ function renderQuemRound() {
             <div class="game-header">
                 <button class="btn-back" onclick="confirmQuemExit()">← Sair</button>
                 <div class="game-title-header">🤔 Quem Sou Eu?</div>
-                <div class="scoreboard">
-                    <div class="team-score team1" style="${quemState.current.turn === 1 ? 'box-shadow: 0 0 20px var(--accent-orange);' : ''}">
-                        <div class="team-name">${quemState.config.team1Name}</div>
-                        <div class="team-points">${quemState.current.team1Score}</div>
-                    </div>
-                    <div class="team-score team2" style="${quemState.current.turn === 2 ? 'box-shadow: 0 0 20px var(--accent-cyan);' : ''}">
-                        <div class="team-name">${quemState.config.team2Name}</div>
-                        <div class="team-points">${quemState.current.team2Score}</div>
-                    </div>
+                <div class="scoreboard" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    ${globalTeams.map((team, i) => `
+                        <div class="team-score" style="background: ${teamColors[team.colorIndex].color}; min-width: 70px; padding: 6px 10px; border-radius: 8px; text-align: center; ${quemState.current.turn === i ? 'box-shadow: 0 0 15px white;' : ''}">
+                            <div style="font-size: 0.65rem;">${team.name.split(' ').slice(-1)[0]}</div>
+                            <div style="font-size: 1.1rem; font-weight: bold;">${quemState.current.scores[i] || 0}</div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
             
@@ -4042,11 +4165,7 @@ function quemGuess() {
     if (correct) {
         const points = 7 - quemState.current.hintIndex;
         
-        if (quemState.current.turn === 1) {
-            quemState.current.team1Score += points;
-        } else {
-            quemState.current.team2Score += points;
-        }
+        quemState.current.scores[quemState.current.turn] += points;
         
         Utils.showFeedback('correct', '🎉', `+${points} pontos!`, 2000);
         Utils.createConfetti(40);
@@ -4061,22 +4180,23 @@ function quemGuess() {
         }, 2000);
     } else {
         Utils.showFeedback('wrong', '❌', 'Errou!', 1500);
-        quemState.current.turn = quemState.current.turn === 1 ? 2 : 1;
+        quemState.current.turn = (quemState.current.turn + 1) % globalTeams.length;
         setTimeout(renderQuemRound, 1500);
     }
 }
 
 function quemPass() {
-    quemState.current.turn = quemState.current.turn === 1 ? 2 : 1;
+    quemState.current.turn = (quemState.current.turn + 1) % globalTeams.length;
     renderQuemRound();
 }
 
 function quemEndGame() {
-    const winner = quemState.current.team1Score > quemState.current.team2Score 
-        ? quemState.config.team1Name 
-        : quemState.current.team2Score > quemState.current.team1Score 
-            ? quemState.config.team2Name 
-            : 'Empate!';
+    const maxScore = Math.max(...quemState.current.scores);
+    const winners = globalTeams.filter((t, i) => quemState.current.scores[i] === maxScore);
+    const winnerText = winners.length > 1 ? 'Empate!' : winners[0].name;
+    
+    const ranking = globalTeams.map((t, i) => ({ team: t, score: quemState.current.scores[i] }))
+        .sort((a, b) => b.score - a.score);
     
     Utils.createConfetti(100);
     
@@ -4086,17 +4206,16 @@ function quemEndGame() {
                 <div class="end-container">
                     <span class="trophy-icon">🏆</span>
                     <h2 class="winner-title">Fim de Jogo!</h2>
-                    <p class="winner-name">${winner}</p>
+                    <p class="winner-name">${winnerText}</p>
                     
-                    <div class="final-scores">
-                        <div class="final-score-item team1">
-                            <div class="final-score-label">${quemState.config.team1Name}</div>
-                            <div class="final-score-value">${quemState.current.team1Score}</div>
-                        </div>
-                        <div class="final-score-item team2">
-                            <div class="final-score-label">${quemState.config.team2Name}</div>
-                            <div class="final-score-value">${quemState.current.team2Score}</div>
-                        </div>
+                    <div class="final-scores" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
+                        ${ranking.map((r, i) => `
+                            <div class="final-score-item" style="background: ${teamColors[r.team.colorIndex].color}; padding: 15px 20px; border-radius: 15px; min-width: 100px; text-align: center;">
+                                <div style="font-size: 1.5rem;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🏅'}</div>
+                                <div style="font-size: 0.85rem;">${r.team.name}</div>
+                                <div style="font-size: 1.5rem; font-weight: bold;">${r.score}</div>
+                            </div>
+                        `).join('')}
                     </div>
                     
                     <div style="display: flex; gap: 20px; justify-content: center;">
@@ -4240,7 +4359,7 @@ function startCabineGame() {
     cabineState.currentPrize = initialPrize;
     cabineState.usedPrizes.push(initialPrize.name);
     
-    renderCabineIntro();
+    renderCabineIntro(); window.syncToProjection && window.syncToProjection(200);
 }
 
 function renderCabineIntro() {
@@ -4281,12 +4400,14 @@ function cabineNextRound() {
     cabineState.nextPrize = nextPrize;
     cabineState.usedPrizes.push(nextPrize.name);
     
-    renderCabineRound();
+    renderCabineRound(); window.syncToProjection && window.syncToProjection(200);
 }
 
 function renderCabineRound() {
     const current = cabineState.currentPrize;
     const next = cabineState.nextPrize;
+    
+    // Sincronizar com projeção no início
     
     // Determinar se a troca é boa ou ruim
     const isGoodTrade = next.value > current.value;
@@ -4440,6 +4561,11 @@ function cabineDecision(accepted) {
         }
     }
     
+    // Sincronizar feedback com projeção
+    if (window.currentMode === 'admin') {
+        window.syncToProjection(500);
+    }
+    
     setTimeout(() => {
         if (cabineState.round >= cabineState.totalRounds) {
             cabineEndGame();
@@ -4502,6 +4628,8 @@ function cabineEndGame() {
             </div>
         </div>
     `;
+    
+    window.syncToProjection && window.syncToProjection(200);
 }
 
 function confirmCabineExit() {
