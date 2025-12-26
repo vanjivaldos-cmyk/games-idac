@@ -1287,8 +1287,18 @@
     </div>
     
     <!-- Mode Indicators -->
-    <div class="admin-indicator" id="adminIndicator">👨‍💼 MODO ADMIN</div>
-    <div class="projection-indicator" id="projectionIndicator">📺 PROJEÇÃO</div>
+    <div class="admin-indicator" id="adminIndicator">
+        👨‍💼 MODO ADMIN
+        <button onclick="forceReset()" style="margin-left: 15px; padding: 5px 15px; border-radius: 15px; border: 2px solid white; background: rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 0.8rem;">
+            🔄 Trocar Modo
+        </button>
+    </div>
+    <div class="projection-indicator" id="projectionIndicator">
+        📺 PROJEÇÃO
+        <button onclick="forceReset()" style="margin-left: 15px; padding: 5px 15px; border-radius: 15px; border: 2px solid white; background: rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 0.8rem;">
+            🔄 Trocar Modo
+        </button>
+    </div>
     
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
@@ -1685,6 +1695,46 @@
             document.getElementById('projectionIndicator').style.display = 'none';
             document.getElementById('modeSelection').style.display = 'block';
             document.getElementById('teamsConfig').style.display = 'none';
+        }
+        
+        // Força reset completo - volta para tela inicial
+        function forceReset() {
+            if (confirm('Voltar para a tela de seleção de modo?')) {
+                localStorage.removeItem('idacMode');
+                localStorage.removeItem('idacTeams');
+                window.currentMode = null;
+                location.reload();
+            }
+        }
+        
+        // Gesto: Toque 3x rápido no canto superior esquerdo para forçar reset
+        let tapCount = 0;
+        let tapTimer = null;
+        
+        // Área de toque no canto superior esquerdo (100x100 pixels)
+        document.addEventListener('click', function(e) {
+            if (e.clientX < 100 && e.clientY < 100) {
+                tapCount++;
+                if (tapCount >= 3) {
+                    forceReset();
+                    tapCount = 0;
+                }
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(() => tapCount = 0, 1500);
+            }
+        });
+        
+        // Também funciona com ESC no computador
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                tapCount++;
+                if (tapCount >= 3) {
+                    forceReset();
+                    tapCount = 0;
+                }
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(() => tapCount = 0, 1500);
+            }
         }
         
         // ========== FIM SISTEMA DE MODOS ==========
