@@ -1981,6 +1981,18 @@ function renderMusicaRound() {
             </div>
             
             <div class="game-content">
+                <!-- PAINEL ADMIN - Só visível para Admin -->
+                <div class="admin-controls admin-only" style="margin-bottom: 20px;">
+                    <h4>👨‍💼 PAINEL DO ADMINISTRADOR</h4>
+                    <div class="admin-answer">
+                        🎵 Resposta: <strong>${musicaState.current.currentSong.title}</strong>
+                        ${musicaState.current.currentSong.artist ? ' - ' + musicaState.current.currentSong.artist : ''}
+                    </div>
+                    <div style="margin-top: 10px; color: #fca5a5;">
+                        💡 Dica: ${musicaState.current.currentSong.hint}
+                    </div>
+                </div>
+                
                 <div style="color: var(--text-secondary); margin-bottom: 20px; font-size: 1.2rem;">
                     Rodada ${musicaState.current.round} de ${musicaState.config.totalRounds}
                 </div>
@@ -2707,6 +2719,14 @@ function renderPassaQuestion() {
             </div>
             
             <div class="game-content">
+                <!-- PAINEL ADMIN -->
+                <div class="admin-controls admin-only" style="margin-bottom: 20px;">
+                    <h4>👨‍💼 PAINEL DO ADMINISTRADOR</h4>
+                    <div class="admin-answer">
+                        ✅ Resposta: <strong>${q.a}</strong>
+                    </div>
+                </div>
+                
                 <div style="color: var(--text-secondary); margin-bottom: 15px;">
                     Pergunta ${passaState.current.question} de ${passaState.config.totalQuestions}
                 </div>
@@ -3037,6 +3057,14 @@ function renderRodaGame() {
             </div>
             
             <div class="game-content" style="padding: 20px;">
+                <!-- PAINEL ADMIN -->
+                <div class="admin-controls admin-only" style="margin-bottom: 15px;">
+                    <h4>👨‍💼 PAINEL DO ADMINISTRADOR</h4>
+                    <div class="admin-answer">
+                        ✅ Frase: <strong>${phrase.phrase.replace(/_/g, ' ')}</strong>
+                    </div>
+                </div>
+                
                 <div style="color: var(--text-secondary); margin-bottom: 10px;">
                     Rodada ${rodaState.current.round} de ${rodaState.current.totalRounds} • ${phrase.category}
                 </div>
@@ -3974,6 +4002,14 @@ function renderQuemRound() {
             </div>
             
             <div class="game-content">
+                <!-- PAINEL ADMIN -->
+                <div class="admin-controls admin-only" style="margin-bottom: 15px;">
+                    <h4>👨‍💼 PAINEL DO ADMINISTRADOR</h4>
+                    <div class="admin-answer">
+                        🎭 Personagem: <strong>${char.name}</strong>
+                    </div>
+                </div>
+                
                 <div style="color: var(--text-secondary); margin-bottom: 15px;">
                     Rodada ${quemState.current.round} de ${quemState.config.rounds}
                 </div>
@@ -4327,6 +4363,16 @@ function renderCabineRound() {
             </div>
             
             <div class="game-content" style="padding: 20px;">
+                <!-- PAINEL ADMIN -->
+                <div class="admin-controls admin-only" style="margin-bottom: 15px;">
+                    <h4>👨‍💼 PAINEL DO ADMINISTRADOR</h4>
+                    <div class="admin-answer">
+                        📦 Atual: <strong>${current.name}</strong> (valor ${current.value})<br>
+                        🎁 Oferta: <strong>${next.name}</strong> (valor ${next.value})<br>
+                        ${next.value === 0 ? '⚠️ ARMADILHA! NÃO DEVE TROCAR!' : next.value > current.value ? '✅ DEVE TROCAR!' : '❌ NÃO DEVE TROCAR!'}
+                    </div>
+                </div>
+                
                 <!-- Aviso para plateia -->
                 <div style="background: ${adviceColor}; color: ${next.value === 0 ? 'white' : 'var(--bg-primary)'}; padding: 15px 40px; border-radius: 30px; font-weight: 700; font-size: 1.3rem; margin-bottom: 30px; animation: pulse 1s infinite;">
                     👀 PLATEIA: ${tradeAdvice}
