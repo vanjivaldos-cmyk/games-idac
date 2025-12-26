@@ -1557,8 +1557,14 @@
                     <div style="font-size:3rem;margin-bottom:20px;">🔐</div>
                     <h3 style="color:var(--accent-gold);margin-bottom:20px;">Acesso Administrador</h3>
                     <p style="color:var(--text-secondary);margin-bottom:20px;">Digite a senha para acessar o modo Admin:</p>
-                    <input type="password" id="adminPassword" placeholder="Senha" 
-                        style="width:100%;padding:15px;border-radius:10px;border:2px solid var(--accent-cyan);background:var(--bg-primary);color:white;font-size:1.2rem;text-align:center;margin-bottom:20px;">
+                    <div style="position:relative;width:100%;margin-bottom:20px;">
+                        <input type="password" id="adminPassword" placeholder="Senha" 
+                            style="width:100%;padding:15px;border-radius:10px;border:2px solid var(--accent-cyan);background:var(--bg-primary);color:white;font-size:1.2rem;text-align:center;padding-right:50px;">
+                        <button type="button" onclick="togglePasswordVisibility()" id="togglePwdBtn"
+                            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.3rem;padding:5px;">
+                            👁️
+                        </button>
+                    </div>
                     <div style="display:flex;gap:15px;justify-content:center;">
                         <button onclick="cancelPassword()" style="padding:12px 30px;border-radius:10px;border:none;background:rgba(255,255,255,0.1);color:white;cursor:pointer;">Cancelar</button>
                         <button onclick="checkPassword()" style="padding:12px 30px;border-radius:10px;border:none;background:var(--accent-gold);color:var(--bg-primary);font-weight:bold;cursor:pointer;">Entrar</button>
@@ -1577,23 +1583,34 @@
         
         async function checkPassword() {
             const input = document.getElementById('adminPassword').value;
+            const errorEl = document.getElementById('passwordError');
+            
             if (input === ADMIN_PASSWORD) {
-                // Verificar se já tem admin ativo
-                const available = await checkAdminAvailable();
-                if (!available) {
-                    document.getElementById('passwordError').textContent = '⚠️ Já existe um Admin conectado!';
-                    document.getElementById('passwordError').style.display = 'block';
-                    document.getElementById('adminPassword').value = '';
-                    return;
+                try {
+                    // Verificar se já tem admin ativo
+                    const available = await checkAdminAvailable();
+                    if (!available) {
+                        errorEl.textContent = '⚠️ Já existe um Admin conectado!';
+                        errorEl.style.display = 'block';
+                        document.getElementById('adminPassword').value = '';
+                        return;
+                    }
+                    
+                    sessionStorage.setItem('adminAuth', 'true');
+                    document.getElementById('passwordOverlay').remove();
+                    registerAsAdmin();
+                    selectMode('admin');
+                } catch (error) {
+                    console.error('Erro ao verificar admin:', error);
+                    // Se der erro, permite entrar mesmo assim
+                    sessionStorage.setItem('adminAuth', 'true');
+                    document.getElementById('passwordOverlay').remove();
+                    registerAsAdmin();
+                    selectMode('admin');
                 }
-                
-                sessionStorage.setItem('adminAuth', 'true');
-                document.getElementById('passwordOverlay').remove();
-                registerAsAdmin();
-                selectMode('admin');
             } else {
-                document.getElementById('passwordError').textContent = '❌ Senha incorreta!';
-                document.getElementById('passwordError').style.display = 'block';
+                errorEl.textContent = '❌ Senha incorreta!';
+                errorEl.style.display = 'block';
                 document.getElementById('adminPassword').value = '';
                 document.getElementById('adminPassword').focus();
             }
@@ -1601,6 +1618,18 @@
         
         function cancelPassword() {
             document.getElementById('passwordOverlay').remove();
+        }
+        
+        function togglePasswordVisibility() {
+            const input = document.getElementById('adminPassword');
+            const btn = document.getElementById('togglePwdBtn');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
         }
         
         function setupProjectionMode() {
