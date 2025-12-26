@@ -424,8 +424,10 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 700;
-            z-index: 1000;
+            z-index: 9999;
             display: none;
+            align-items: center;
+            gap: 10px;
         }
         
         .projection-indicator {
@@ -438,8 +440,15 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 700;
-            z-index: 1000;
+            z-index: 9999;
             display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .projection-indicator.visible,
+        .admin-indicator.visible {
+            display: flex !important;
         }
         
         /* Admin controls in games */
@@ -1508,8 +1517,8 @@
             document.body.classList.remove('admin-mode', 'projection-mode');
             document.body.classList.add(mode + '-mode');
             
-            document.getElementById('adminIndicator').style.display = mode === 'admin' ? 'block' : 'none';
-            document.getElementById('projectionIndicator').style.display = mode === 'projection' ? 'block' : 'none';
+            document.getElementById('adminIndicator').style.display = mode === 'admin' ? 'flex' : 'none';
+            document.getElementById('projectionIndicator').style.display = mode === 'projection' ? 'flex' : 'none';
             
             document.getElementById('modeSelection').style.display = 'none';
             document.getElementById('teamsConfig').style.display = 'block';
