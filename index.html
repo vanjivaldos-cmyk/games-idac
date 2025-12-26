@@ -18,8 +18,15 @@
             messagingSenderId: "182894574892",
             appId: "1:182894574892:web:33b8348e8478644abe0089"
         };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Verificar se Firebase carregou
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            window.database = firebase.database();
+            window.firebaseReady = true;
+        } else {
+            console.warn('Firebase não carregou - modo offline');
+            window.firebaseReady = false;
+        }
     </script>
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&family=Audiowide&display=swap" rel="stylesheet">
@@ -1304,8 +1311,8 @@
     </div>
     <div class="projection-indicator" id="projectionIndicator">
         📺 PROJEÇÃO
-        <button onclick="forceReset()" style="margin-left: 15px; padding: 5px 15px; border-radius: 15px; border: 2px solid white; background: rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 0.8rem;">
-            🔄 Trocar Modo
+        <button onclick="projectionReset()" style="margin-left: 15px; padding: 5px 15px; border-radius: 15px; border: 2px solid white; background: rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 0.8rem;">
+            🔄 Reiniciar
         </button>
     </div>
     
@@ -1510,7 +1517,18 @@
         
         const gameRef = database.ref('games/' + window.gameRoom);
         
+        const ADMIN_PASSWORD = 'idac2025';
+        
         function selectMode(mode) {
+            // Se for admin, pedir senha
+            if (mode === 'admin') {
+                const savedAuth = sessionStorage.getItem('adminAuth');
+                if (savedAuth !== 'true') {
+                    showPasswordPrompt();
+                    return;
+                }
+            }
+            
             window.currentMode = mode;
             localStorage.setItem('idacMode', mode);
             
@@ -1528,6 +1546,50 @@
             if (mode === 'projection') {
                 setupProjectionMode();
             }
+        }
+        
+        function showPasswordPrompt() {
+            const overlay = document.createElement('div');
+            overlay.id = 'passwordOverlay';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;';
+            overlay.innerHTML = `
+                <div style="background:var(--bg-secondary);padding:40px;border-radius:20px;text-align:center;max-width:400px;width:90%;">
+                    <div style="font-size:3rem;margin-bottom:20px;">🔐</div>
+                    <h3 style="color:var(--accent-gold);margin-bottom:20px;">Acesso Administrador</h3>
+                    <p style="color:var(--text-secondary);margin-bottom:20px;">Digite a senha para acessar o modo Admin:</p>
+                    <input type="password" id="adminPassword" placeholder="Senha" 
+                        style="width:100%;padding:15px;border-radius:10px;border:2px solid var(--accent-cyan);background:var(--bg-primary);color:white;font-size:1.2rem;text-align:center;margin-bottom:20px;">
+                    <div style="display:flex;gap:15px;justify-content:center;">
+                        <button onclick="cancelPassword()" style="padding:12px 30px;border-radius:10px;border:none;background:rgba(255,255,255,0.1);color:white;cursor:pointer;">Cancelar</button>
+                        <button onclick="checkPassword()" style="padding:12px 30px;border-radius:10px;border:none;background:var(--accent-gold);color:var(--bg-primary);font-weight:bold;cursor:pointer;">Entrar</button>
+                    </div>
+                    <p id="passwordError" style="color:#ff4757;margin-top:15px;display:none;">❌ Senha incorreta!</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('adminPassword').focus();
+            
+            // Enter para confirmar
+            document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') checkPassword();
+            });
+        }
+        
+        function checkPassword() {
+            const input = document.getElementById('adminPassword').value;
+            if (input === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminAuth', 'true');
+                document.getElementById('passwordOverlay').remove();
+                selectMode('admin');
+            } else {
+                document.getElementById('passwordError').style.display = 'block';
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+        
+        function cancelPassword() {
+            document.getElementById('passwordOverlay').remove();
         }
         
         function setupProjectionMode() {
@@ -1691,8 +1753,23 @@
         }
         
         function checkMode() {
-            if (window.currentMode) {
-                selectMode(window.currentMode);
+            const savedMode = localStorage.getItem('idacMode');
+            if (savedMode) {
+                // Se for admin, verificar se tem autenticação na sessão
+                if (savedMode === 'admin') {
+                    const savedAuth = sessionStorage.getItem('adminAuth');
+                    if (savedAuth === 'true') {
+                        window.currentMode = 'admin';
+                        selectMode('admin');
+                    } else {
+                        // Não tem auth, voltar para seleção
+                        localStorage.removeItem('idacMode');
+                        document.getElementById('modeSelection').style.display = 'block';
+                    }
+                } else {
+                    window.currentMode = savedMode;
+                    selectMode(savedMode);
+                }
             }
         }
         
@@ -1706,11 +1783,21 @@
             document.getElementById('teamsConfig').style.display = 'none';
         }
         
-        // Força reset completo - volta para tela inicial
+        // Força reset completo - volta para tela inicial (só Admin)
         function forceReset() {
             if (confirm('Voltar para a tela de seleção de modo?')) {
                 localStorage.removeItem('idacMode');
                 localStorage.removeItem('idacTeams');
+                sessionStorage.removeItem('adminAuth');
+                window.currentMode = null;
+                location.reload();
+            }
+        }
+        
+        // Reset para projeção - só recarrega mantendo modo projeção
+        function projectionReset() {
+            if (confirm('Voltar para a tela inicial?')) {
+                localStorage.removeItem('idacMode');
                 window.currentMode = null;
                 location.reload();
             }
@@ -1744,7 +1831,7 @@
                 clearTimeout(tapTimer);
                 tapTimer = setTimeout(() => tapCount = 0, 1500);
             }
-        }
+        });
         
         // ========== FIM SISTEMA DE MODOS ==========
         
