@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎮 Games IDAC - Igreja de Deus Águas Claras</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfiaq0gMPSXaWcv3PvRZtv1xZg38h-QpA",
+            authDomain: "games-idac.firebaseapp.com",
+            databaseURL: "https://games-idac-default-rtdb.firebaseio.com",
+            projectId: "games-idac",
+            storageBucket: "games-idac.firebasestorage.app",
+            messagingSenderId: "182894574892",
+            appId: "1:182894574892:web:33b8348e8478644abe0089"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&family=Audiowide&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -319,6 +337,161 @@
         }
         
         /* Teams Configuration */
+        /* Mode Selection */
+        .mode-selection {
+            background: rgba(0, 40, 80, 0.8);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .mode-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .mode-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 25px 35px;
+            border-radius: 15px;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 180px;
+        }
+        
+        .admin-btn {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(220, 38, 38, 0.1));
+            border-color: #dc2626;
+            color: #fca5a5;
+        }
+        
+        .admin-btn:hover {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.5), rgba(220, 38, 38, 0.3));
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
+        }
+        
+        .projection-btn {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1));
+            border-color: #22c55e;
+            color: #86efac;
+        }
+        
+        .projection-btn:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.5), rgba(34, 197, 94, 0.3));
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+        }
+        
+        .mode-icon {
+            font-size: 3rem;
+        }
+        
+        .mode-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        .mode-desc {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .mode-hint {
+            color: #ffd700;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+        
+        /* Admin indicator */
+        .admin-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .projection-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            z-index: 1000;
+            display: none;
+        }
+        
+        /* Admin controls in games */
+        .admin-controls {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid rgba(220, 38, 38, 0.5);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .admin-controls h4 {
+            color: #fca5a5;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .admin-answer {
+            background: rgba(34, 197, 94, 0.3);
+            border: 2px solid #22c55e;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            color: #86efac;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .admin-btn-action {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            margin: 5px;
+        }
+        
+        .admin-btn-action:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Hide elements based on mode */
+        body.projection-mode .admin-only {
+            display: none !important;
+        }
+        
+        body.admin-mode .projection-only {
+            display: none !important;
+        }
+        
         .teams-config {
             background: linear-gradient(135deg, rgba(10, 30, 60, 0.98), rgba(15, 45, 90, 0.95));
             border: 2px solid rgba(255, 215, 0, 0.4);
@@ -397,9 +570,32 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 0.7rem;
             color: #ffd700;
-            min-width: 65px;
+            min-width: 120px;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        
+        .leader-input {
+            flex: 1;
+            max-width: 120px;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 20, 40, 0.8);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .leader-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .leader-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
         
         .team-color-preview {
@@ -1090,6 +1286,10 @@
         <div class="holo-grid"></div>
     </div>
     
+    <!-- Mode Indicators -->
+    <div class="admin-indicator" id="adminIndicator">👨‍💼 MODO ADMIN</div>
+    <div class="projection-indicator" id="projectionIndicator">📺 PROJEÇÃO</div>
+    
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner">🎮</div>
@@ -1109,8 +1309,29 @@
                 <p class="logo-subtitle">⭐ Igreja de Deus Águas Claras ⭐</p>
             </div>
             
+            <!-- Seleção de Modo -->
+            <div class="mode-selection" id="modeSelection">
+                <h3 class="teams-config-title">🎮 Selecionar Modo</h3>
+                
+                <div class="mode-buttons">
+                    <button class="mode-btn admin-btn" onclick="selectMode('admin')">
+                        <span class="mode-icon">👨‍💼</span>
+                        <span class="mode-title">ADMINISTRADOR</span>
+                        <span class="mode-desc">Controla o jogo, vê respostas</span>
+                    </button>
+                    
+                    <button class="mode-btn projection-btn" onclick="selectMode('projection')">
+                        <span class="mode-icon">📺</span>
+                        <span class="mode-title">PROJEÇÃO</span>
+                        <span class="mode-desc">Tela para os jogadores</span>
+                    </button>
+                </div>
+                
+                <p class="mode-hint">💡 Abra em 2 abas: uma Admin (seu controle) e uma Projeção (TV/projetor)</p>
+            </div>
+            
             <!-- Configuração de Equipes -->
-            <div class="teams-config" id="teamsConfig">
+            <div class="teams-config" id="teamsConfig" style="display: none;">
                 <h3 class="teams-config-title">⚙️ Configurar Equipes</h3>
                 
                 <div class="teams-config-row">
@@ -1136,6 +1357,10 @@
                 
                 <button class="btn btn-primary" onclick="saveTeamsConfig()" style="margin-top: 15px;">
                     💾 Salvar Configuração
+                </button>
+                
+                <button class="btn" onclick="resetMode()" style="margin-top: 10px; background: rgba(100,100,100,0.5);">
+                    🔄 Trocar Modo (Admin/Projeção)
                 </button>
             </div>
             
@@ -1235,21 +1460,125 @@
         // ========== UTILIDADES GLOBAIS ==========
         // ========== CONFIGURAÇÃO DE EQUIPES ==========
         const teamColors = [
-            { name: 'Vermelho', color: '#e74c3c', light: '#ffebee' },
-            { name: 'Azul', color: '#3498db', light: '#e3f2fd' },
-            { name: 'Verde', color: '#27ae60', light: '#e8f5e9' },
-            { name: 'Amarelo', color: '#f1c40f', light: '#fffde7' },
-            { name: 'Laranja', color: '#e67e22', light: '#fff3e0' },
-            { name: 'Roxo', color: '#9b59b6', light: '#f3e5f5' },
-            { name: 'Rosa', color: '#e91e63', light: '#fce4ec' },
-            { name: 'Ciano', color: '#00bcd4', light: '#e0f7fa' },
-            { name: 'Marrom', color: '#795548', light: '#efebe9' },
-            { name: 'Cinza', color: '#607d8b', light: '#eceff1' },
-            { name: 'Dourado', color: '#ffd700', light: '#fff8e1' },
-            { name: 'Turquesa', color: '#1abc9c', light: '#e0f2f1' }
+            { name: 'Judá - Azul Royal', color: '#1e3a8a', light: '#dbeafe' },
+            { name: 'Rúben - Vermelho', color: '#dc2626', light: '#fecaca' },
+            { name: 'Simeão - Verde', color: '#16a34a', light: '#bbf7d0' },
+            { name: 'Levi - Branco', color: '#f8fafc', light: '#f1f5f9', textColor: '#1e293b' },
+            { name: 'Issacar - Azul Escuro', color: '#1e3a5f', light: '#e0e7ff' },
+            { name: 'Zebulom - Azul Marinho', color: '#1e40af', light: '#bfdbfe' },
+            { name: 'Dã - Azul Safira', color: '#2563eb', light: '#93c5fd' },
+            { name: 'Gade - Preto', color: '#18181b', light: '#d4d4d8' },
+            { name: 'Aser - Verde Oliva', color: '#65a30d', light: '#d9f99d' },
+            { name: 'Naftali - Roxo', color: '#7c3aed', light: '#ddd6fe' },
+            { name: 'José - Multicolor', color: 'linear-gradient(135deg, #7c3aed, #2563eb, #dc2626, #fbbf24)', light: '#fef3c7' },
+            { name: 'Benjamim - Degradê', color: 'linear-gradient(135deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6)', light: '#fce7f3' }
         ];
         
         let globalTeams = [];
+        
+        // ========== SISTEMA DE MODOS (ADMIN/PROJECAO) COM FIREBASE ==========
+        window.currentMode = localStorage.getItem('idacMode') || null;
+        window.gameRoom = 'sala_principal';
+        
+        window.gameState = {
+            currentGame: null,
+            currentQuestion: null,
+            showAnswer: false,
+            selectedOption: null,
+            score: {},
+            questionRevealed: false
+        };
+        
+        const gameRef = database.ref('games/' + window.gameRoom);
+        
+        function selectMode(mode) {
+            window.currentMode = mode;
+            localStorage.setItem('idacMode', mode);
+            
+            document.body.classList.remove('admin-mode', 'projection-mode');
+            document.body.classList.add(mode + '-mode');
+            
+            document.getElementById('adminIndicator').style.display = mode === 'admin' ? 'block' : 'none';
+            document.getElementById('projectionIndicator').style.display = mode === 'projection' ? 'block' : 'none';
+            
+            document.getElementById('modeSelection').style.display = 'none';
+            document.getElementById('teamsConfig').style.display = 'block';
+            
+            setupFirebaseListener();
+            
+            if (mode === 'projection') {
+                setupProjectionMode();
+            }
+        }
+        
+        function setupProjectionMode() {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        }
+        
+        function setupFirebaseListener() {
+            gameRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+                
+                if (window.currentMode === 'projection') {
+                    handleFirebaseUpdate(data);
+                }
+            });
+        }
+        
+        function handleFirebaseUpdate(data) {
+            if (data.command) {
+                switch(data.command) {
+                    case 'loadGame':
+                        loadGame(data.game);
+                        break;
+                    case 'revealAnswer':
+                        revealAnswerOnProjection(data);
+                        break;
+                    case 'backToMenu':
+                        showMenu();
+                        break;
+                }
+            }
+        }
+        
+        window.adminSendCommand = function(type, data = {}) {
+            if (window.currentMode === 'admin') {
+                gameRef.set({
+                    command: type,
+                    ...data,
+                    timestamp: Date.now()
+                });
+            }
+        }
+        
+        function revealAnswerOnProjection(data) {
+            const correct = data.correct;
+            const btn = document.getElementById('milhaoOpt' + correct);
+            if (btn) {
+                btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+                btn.style.border = '3px solid #86efac';
+                btn.style.transform = 'scale(1.05)';
+            }
+        }
+        
+        function checkMode() {
+            if (window.currentMode) {
+                selectMode(window.currentMode);
+            }
+        }
+        
+        function resetMode() {
+            localStorage.removeItem('idacMode');
+            window.currentMode = null;
+            document.body.classList.remove('admin-mode', 'projection-mode');
+            document.getElementById('adminIndicator').style.display = 'none';
+            document.getElementById('projectionIndicator').style.display = 'none';
+            document.getElementById('modeSelection').style.display = 'block';
+            document.getElementById('teamsConfig').style.display = 'none';
+        }
+        
+        // ========== FIM SISTEMA DE MODOS ==========
         
         function initTeams() {
             const saved = localStorage.getItem('idacTeams');
@@ -1272,8 +1601,10 @@
             // Ajustar array de equipes
             while (globalTeams.length < num) {
                 const idx = globalTeams.length;
+                const triboName = teamColors[idx % teamColors.length].name.split(' - ')[0];
                 globalTeams.push({
-                    name: `Equipe ${teamColors[idx % teamColors.length].name}`,
+                    name: `Tribo de ${triboName}`,
+                    leader: '',
                     colorIndex: idx % teamColors.length
                 });
             }
@@ -1291,8 +1622,9 @@
                     <div class="team-item">
                         <div class="team-color-preview" style="background: ${color.color};"></div>
                         <span class="team-color-name">${color.name}</span>
-                        <input type="text" value="${team.name}" placeholder="Nome da equipe ${i+1}" 
-                               onchange="updateTeamName(${i}, this.value)">
+                        <input type="text" value="${team.leader || ''}" placeholder="Líder" 
+                               maxlength="12" class="leader-input"
+                               onchange="updateTeamLeader(${i}, this.value)">
                     </div>
                 `;
             }
@@ -1302,6 +1634,10 @@
         
         function updateTeamName(index, name) {
             globalTeams[index].name = name;
+        }
+        
+        function updateTeamLeader(index, leader) {
+            globalTeams[index].leader = leader;
         }
         
         function updateTeamColor(index, colorIndex) {
@@ -1394,6 +1730,11 @@
         function loadGame(gameId) {
             document.getElementById('menuScreen').classList.add('hidden');
             
+            // Enviar para projeção se for admin
+            if (window.currentMode === 'admin') {
+                adminSendCommand('loadGame', { game: gameId });
+            }
+            
             switch(gameId) {
                 case 'musica':
                     loadMusicaGame();
@@ -1435,6 +1776,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             createParticles();
             initTeams();
+            checkMode();
             
             // Esconder loading
             setTimeout(() => {
@@ -3068,6 +3410,8 @@ function renderMilhaoQuestion() {
     const q = milhaoState.currentQuestion;
     const level = milhaoLevels[milhaoState.currentLevel];
     const letters = ['A', 'B', 'C', 'D'];
+    const correctLetter = letters[q.correct];
+    const correctAnswer = q.options[q.correct];
     
     document.getElementById('gameContainer').innerHTML = `
         <div class="game-screen active">
@@ -3081,6 +3425,18 @@ function renderMilhaoQuestion() {
             </div>
             
             <div class="game-content">
+                <!-- PAINEL ADMIN - Só visível para Admin -->
+                <div class="admin-controls admin-only" style="margin-bottom: 20px;">
+                    <h4>👨‍💼 PAINEL DO ADMINISTRADOR</h4>
+                    <div class="admin-answer">
+                        ✅ Resposta Correta: <strong>${correctLetter}) ${correctAnswer}</strong>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                        <button class="admin-btn-action" onclick="adminRevealAnswer()">👁️ Revelar Resposta</button>
+                        <button class="admin-btn-action" onclick="adminNextQuestion()">➡️ Próxima Pergunta</button>
+                    </div>
+                </div>
+                
                 <!-- Ajudas -->
                 <div style="display: flex; gap: 15px; margin-bottom: 30px;">
                     <button class="btn btn-secondary" onclick="milhaoUseCards()" ${!milhaoState.helps.cards ? 'disabled style="opacity: 0.3;"' : ''}>
@@ -3134,6 +3490,29 @@ function renderMilhaoQuestion() {
             </div>
         </div>
     `;
+}
+
+// Funções Admin para Show do Milhão
+function adminRevealAnswer() {
+    if (!milhaoState.currentQuestion) return;
+    const correct = milhaoState.currentQuestion.correct;
+    const btn = document.getElementById(`milhaoOpt${correct}`);
+    if (btn) {
+        btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+        btn.style.border = '3px solid #86efac';
+        btn.style.transform = 'scale(1.05)';
+    }
+    // Enviar para projeção
+    adminSendCommand('revealAnswer', { correct: correct, game: 'milhao' });
+}
+
+function adminNextQuestion() {
+    if (milhaoState.currentLevel < 5) {
+        milhaoState.currentLevel++;
+        loadMilhaoQuestion();
+    } else {
+        milhaoWin();
+    }
 }
 
 function milhaoAnswer(idx) {
