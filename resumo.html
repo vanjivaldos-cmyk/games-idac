@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Resumo Completo - Games IDAC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #1a1a4e, #2a2a6e); color: white; padding: 20px; min-height: 100vh; }
+        h1 { text-align: center; color: #ffd700; margin-bottom: 5px; font-size: 1.8rem; }
+        .subtitle { text-align: center; color: #aaa; margin-bottom: 20px; }
+        h2 { color: #00d4ff; margin: 25px 0 12px; font-size: 1.1rem; border-bottom: 2px solid #00d4ff; padding-bottom: 5px; }
+        h2.gold { color: #ffd700; border-color: #ffd700; }
+        h2.purple { color: #a855f7; border-color: #a855f7; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem; }
+        th, td { padding: 6px 8px; border: 1px solid rgba(255,255,255,0.2); text-align: left; }
+        th { background: rgba(0,212,255,0.2); color: #00d4ff; }
+        tr:nth-child(even) { background: rgba(255,255,255,0.05); }
+        .good { color: #22c55e; }
+        .bad { color: #ef4444; }
+        .pending { color: #fbbf24; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+        .box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px; }
+        .box h3 { margin-bottom: 10px; font-size: 0.9rem; }
+        .box.good-box { border-color: rgba(34,197,94,0.3); }
+        .box.bad-box { border-color: rgba(239,68,68,0.3); }
+        .levels { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .level { background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; text-align: center; }
+        .level.safe { background: rgba(255,215,0,0.15); border: 2px solid #ffd700; }
+        .level small { display: block; color: #aaa; margin-bottom: 3px; font-size: 0.75rem; }
+        .level .value { font-weight: bold; }
+        .level .value.gold { color: #ffd700; }
+        .level .value.green { color: #22c55e; }
+        .tribe { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
+        .tribe-num { background: rgba(0,0,0,0.3); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; }
+        .bingo-item { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 0.75rem; }
+        .bingo-item .emoji { font-size: 1.1rem; }
+        .bingo-item .num { color: #ffd700; font-weight: bold; min-width: 20px; }
+        .footer { text-align: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); color: #666; font-size: 0.8rem; }
+        .btn-print { display: block; margin: 15px auto; padding: 10px 25px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 20px; font-size: 0.9rem; cursor: pointer; }
+        .btn-print:hover { transform: scale(1.05); }
+        @media print { 
+            body { background: white; color: black; padding: 10px; } 
+            th { background: #1e3a8a; color: white; }
+            .btn-print { display: none; }
+            h2 { color: #1e3a8a; border-color: #1e3a8a; }
+            .tribe { border: 1px solid #ccc; }
+        }
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .grid-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Resumo Completo</h1>
+    <p class="subtitle">Games IDAC - Igreja de Deus Águas Claras</p>
+    
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+
+    <!-- PONTUAÇÃO -->
+    <h2>🎮 Sistema de Pontuação por Jogo</h2>
+    <table>
+        <thead><tr><th>Jogo</th><th>Sistema</th><th>Placar Geral</th></tr></thead>
+        <tbody>
+            <tr><td>🎵 Qual é o Louvor</td><td>1 ponto por acerto</td><td class="good">✅ Acumula</td></tr>
+            <tr><td>📖 Bingo Bíblico</td><td>1 bingo = 5 pontos</td><td class="good">✅ 5 pts/bingo</td></tr>
+            <tr><td>⚡ Passa ou Repassa</td><td>1 ponto por acerto</td><td class="pending">⏳ Em breve</td></tr>
+            <tr><td>🎡 Roda a Roda</td><td>$100 a $1000</td><td class="pending">⏳ Em breve</td></tr>
+            <tr><td>💰 Show do Milhão</td><td>R$ 1mil a R$ 1milhão</td><td class="pending">⏳ Em breve</td></tr>
+            <tr><td>🤔 Quem Sou Eu?</td><td>1-7 pts por dica</td><td class="pending">⏳ Em breve</td></tr>
+            <tr><td>🚀 Cabine Sim ou Não</td><td>Prêmios físicos</td><td class="bad">❌ Não acumula</td></tr>
+        </tbody>
+    </table>
+
+    <!-- 12 TRIBOS -->
+    <h2 class="gold">⚔️ As 12 Tribos de Israel (Ordem Alfabética)</h2>
+    <div class="grid-3">
+        <div class="tribe" style="background: #65a30d; color: white;"><span class="tribe-num">1</span> Aser - Verde Oliva</div>
+        <div class="tribe" style="background: linear-gradient(135deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6); color: white;"><span class="tribe-num">2</span> Benjamim - Degradê</div>
+        <div class="tribe" style="background: #2563eb; color: white;"><span class="tribe-num">3</span> Dã - Azul Safira</div>
+        <div class="tribe" style="background: #18181b; color: white;"><span class="tribe-num">4</span> Gade - Preto</div>
+        <div class="tribe" style="background: #1e3a5f; color: white;"><span class="tribe-num">5</span> Issacar - Azul Escuro</div>
+        <div class="tribe" style="background: linear-gradient(135deg, #7c3aed, #2563eb, #dc2626, #fbbf24); color: white;"><span class="tribe-num">6</span> José - Multicolor</div>
+        <div class="tribe" style="background: #1e3a8a; color: white;"><span class="tribe-num">7</span> Judá - Azul Royal</div>
+        <div class="tribe" style="background: #f8fafc; color: #1e293b; border: 2px solid #ccc;"><span class="tribe-num">8</span> Levi - Branco</div>
+        <div class="tribe" style="background: #7c3aed; color: white;"><span class="tribe-num">9</span> Naftali - Roxo</div>
+        <div class="tribe" style="background: #dc2626; color: white;"><span class="tribe-num">10</span> Rúben - Vermelho</div>
+        <div class="tribe" style="background: #16a34a; color: white;"><span class="tribe-num">11</span> Simeão - Verde</div>
+        <div class="tribe" style="background: #1e40af; color: white;"><span class="tribe-num">12</span> Zebulom - Azul Marinho</div>
+    </div>
+
+    <!-- BINGO -->
+    <h2 class="purple">📖 Figuras do Bingo Bíblico (64 itens)</h2>
+    <div class="grid-4">
+        <div class="bingo-item"><span class="num">1</span><span class="emoji">👨</span>Adão</div>
+        <div class="bingo-item"><span class="num">2</span><span class="emoji">👩</span>Eva</div>
+        <div class="bingo-item"><span class="num">3</span><span class="emoji">🚢</span>Noé</div>
+        <div class="bingo-item"><span class="num">4</span><span class="emoji">👴</span>Abraão</div>
+        <div class="bingo-item"><span class="num">5</span><span class="emoji">📜</span>Moisés</div>
+        <div class="bingo-item"><span class="num">6</span><span class="emoji">🎶</span>Davi</div>
+        <div class="bingo-item"><span class="num">7</span><span class="emoji">⚖️</span>Salomão</div>
+        <div class="bingo-item"><span class="num">8</span><span class="emoji">🧎</span>Daniel</div>
+        <div class="bingo-item"><span class="num">9</span><span class="emoji">🐋</span>Jonas</div>
+        <div class="bingo-item"><span class="num">10</span><span class="emoji">🌍</span>Terra</div>
+        <div class="bingo-item"><span class="num">11</span><span class="emoji">🔨</span>José</div>
+        <div class="bingo-item"><span class="num">12</span><span class="emoji">👑</span>Jesus</div>
+        <div class="bingo-item"><span class="num">13</span><span class="emoji">🔑</span>Pedro</div>
+        <div class="bingo-item"><span class="num">14</span><span class="emoji">✉️</span>Paulo</div>
+        <div class="bingo-item"><span class="num">15</span><span class="emoji">📖</span>João</div>
+        <div class="bingo-item"><span class="num">16</span><span class="emoji">🌈</span>Arca de Noé</div>
+        <div class="bingo-item"><span class="num">17</span><span class="emoji">🌊</span>Travessia Mar Vermelho</div>
+        <div class="bingo-item"><span class="num">18</span><span class="emoji">🎯</span>Davi e Golias</div>
+        <div class="bingo-item"><span class="num">19</span><span class="emoji">👰</span>Igreja Noiva de Cristo</div>
+        <div class="bingo-item"><span class="num">20</span><span class="emoji">🐳</span>Jonas e o Grande Peixe</div>
+        <div class="bingo-item"><span class="num">21</span><span class="emoji">👶</span>Nascimento de Jesus</div>
+        <div class="bingo-item"><span class="num">22</span><span class="emoji">🕎</span>Menorá</div>
+        <div class="bingo-item"><span class="num">23</span><span class="emoji">🍷</span>Última Ceia</div>
+        <div class="bingo-item"><span class="num">24</span><span class="emoji">🌅</span>Ressurreição</div>
+        <div class="bingo-item"><span class="num">25</span><span class="emoji">🔥</span>Pentecostes</div>
+        <div class="bingo-item"><span class="num">26</span><span class="emoji">🕊️</span>Pomba</div>
+        <div class="bingo-item"><span class="num">27</span><span class="emoji">✝️</span>Cruz</div>
+        <div class="bingo-item"><span class="num">28</span><span class="emoji">🍞</span>Pão</div>
+        <div class="bingo-item"><span class="num">29</span><span class="emoji">🌠</span>Estrela dos Magos</div>
+        <div class="bingo-item"><span class="num">30</span><span class="emoji">🐑</span>Cordeiro</div>
+        <div class="bingo-item"><span class="num">31</span><span class="emoji">🦁</span>Leão de Judá</div>
+        <div class="bingo-item"><span class="num">32</span><span class="emoji">🌟</span>Estrela de Belém</div>
+        <div class="bingo-item"><span class="num">33</span><span class="emoji">🥰</span>Amor de Deus</div>
+        <div class="bingo-item"><span class="num">34</span><span class="emoji">👪</span>Família</div>
+        <div class="bingo-item"><span class="num">35</span><span class="emoji">📦</span>Arca da Aliança</div>
+        <div class="bingo-item"><span class="num">36</span><span class="emoji">📋</span>Tábuas da Lei</div>
+        <div class="bingo-item"><span class="num">37</span><span class="emoji">🦉</span>Sabedoria</div>
+        <div class="bingo-item"><span class="num">38</span><span class="emoji">🌧️</span>Elias</div>
+        <div class="bingo-item"><span class="num">39</span><span class="emoji">💪</span>Sansão</div>
+        <div class="bingo-item"><span class="num">40</span><span class="emoji">🌾</span>Rute</div>
+        <div class="bingo-item"><span class="num">41</span><span class="emoji">👸</span>Ester</div>
+        <div class="bingo-item"><span class="num">42</span><span class="emoji">🙏</span>Jó</div>
+        <div class="bingo-item"><span class="num">43</span><span class="emoji">📢</span>Isaías</div>
+        <div class="bingo-item"><span class="num">44</span><span class="emoji">😢</span>Jeremias</div>
+        <div class="bingo-item"><span class="num">45</span><span class="emoji">👁️</span>Ezequiel</div>
+        <div class="bingo-item"><span class="num">46</span><span class="emoji">🏜️</span>João Batista</div>
+        <div class="bingo-item"><span class="num">47</span><span class="emoji">🙋‍♂️</span>Lázaro</div>
+        <div class="bingo-item"><span class="num">48</span><span class="emoji">🤝</span>Bom Samaritano</div>
+        <div class="bingo-item"><span class="num">49</span><span class="emoji">🏠</span>Filho Pródigo</div>
+        <div class="bingo-item"><span class="num">50</span><span class="emoji">🐟</span>Multiplicação dos Pães</div>
+        <div class="bingo-item"><span class="num">51</span><span class="emoji">⚔️</span>Gideão</div>
+        <div class="bingo-item"><span class="num">52</span><span class="emoji">👂</span>Samuel</div>
+        <div class="bingo-item"><span class="num">53</span><span class="emoji">🧵</span>Raabe</div>
+        <div class="bingo-item"><span class="num">54</span><span class="emoji">🍇</span>Calebe</div>
+        <div class="bingo-item"><span class="num">55</span><span class="emoji">🚪</span>Porta</div>
+        <div class="bingo-item"><span class="num">56</span><span class="emoji">👭</span>Marta e Maria</div>
+        <div class="bingo-item"><span class="num">57</span><span class="emoji">🌳</span>Zaqueu</div>
+        <div class="bingo-item"><span class="num">58</span><span class="emoji">🌙</span>Nicodemos</div>
+        <div class="bingo-item"><span class="num">59</span><span class="emoji">🚶</span>Caminho de Emaús</div>
+        <div class="bingo-item"><span class="num">60</span><span class="emoji">🏺</span>Bodas de Caná</div>
+        <div class="bingo-item"><span class="num">61</span><span class="emoji">✨</span>Transfiguração</div>
+        <div class="bingo-item"><span class="num">62</span><span class="emoji">🛕</span>Templo de Salomão</div>
+        <div class="bingo-item"><span class="num">63</span><span class="emoji">💦</span>Poço de Jacó</div>
+        <div class="bingo-item"><span class="num">64</span><span class="emoji">⛰️</span>Monte das Oliveiras</div>
+    </div>
+
+    <!-- CABINE -->
+    <h2>🎁 Prêmios do Cabine do Sim ou Não</h2>
+    <div class="grid">
+        <div class="box good-box">
+            <h3 class="good">✅ Prêmios Bons</h3>
+            <table>
+                <tr><td>📖</td><td>Bíblia de Estudo</td><td>5</td></tr>
+                <tr><td>🎁</td><td>Vale-Presente R$50</td><td>5</td></tr>
+                <tr><td>🧺</td><td>Cesta de Café</td><td>5</td></tr>
+                <tr><td>🎧</td><td>Fone Bluetooth</td><td>4</td></tr>
+                <tr><td>🎒</td><td>Mochila</td><td>4</td></tr>
+                <tr><td>🍖</td><td>Kit Churrasco</td><td>4</td></tr>
+                <tr><td>🎁</td><td>Bombom Fino</td><td>4</td></tr>
+                <tr><td>🍫</td><td>Caixa Chocolate</td><td>3</td></tr>
+                <tr><td>📚</td><td>Livro Cristão</td><td>3</td></tr>
+                <tr><td>👕</td><td>Camiseta IDAC</td><td>3</td></tr>
+                <tr><td>🧴</td><td>Garrafa Térmica</td><td>3</td></tr>
+                <tr><td>💾</td><td>Pen Drive 32GB</td><td>3</td></tr>
+                <tr><td>🛁</td><td>Jogo de Toalhas</td><td>3</td></tr>
+                <tr><td>🕐</td><td>Relógio Parede</td><td>3</td></tr>
+                <tr><td>🍕</td><td>Vale Pizza</td><td>3</td></tr>
+                <tr><td>💡</td><td>Luminária LED</td><td>3</td></tr>
+                <tr><td>☕</td><td>Caneca</td><td>2</td></tr>
+                <tr><td>📓</td><td>Caderno Premium</td><td>2</td></tr>
+                <tr><td>✏️</td><td>Kit Papelaria</td><td>2</td></tr>
+                <tr><td>🖼️</td><td>Porta-Retrato</td><td>2</td></tr>
+                <tr><td>🛋️</td><td>Almofada</td><td>2</td></tr>
+                <tr><td>☂️</td><td>Guarda-Chuva</td><td>2</td></tr>
+            </table>
+        </div>
+        <div class="box bad-box">
+            <h3 class="bad">❌ Armadilhas (0 pts)</h3>
+            <table>
+                <tr><td>🥤</td><td>Copo Descartável</td></tr>
+                <tr><td>📎</td><td>Clip de Papel</td></tr>
+                <tr><td>🧽</td><td>Borracha Velha</td></tr>
+                <tr><td>🖊️</td><td>Caneta sem Tinta</td></tr>
+                <tr><td>📄</td><td>Folha em Branco</td></tr>
+                <tr><td>🎈</td><td>Balão Murcho</td></tr>
+                <tr><td>⭕</td><td>Elástico Velho</td></tr>
+                <tr><td>🪵</td><td>Palito de Picolé</td></tr>
+                <tr><td>🍅</td><td>Sachê Ketchup</td></tr>
+                <tr><td>🧻</td><td>Guardanapo Usado</td></tr>
+                <tr><td>🔘</td><td>Botão de Camisa</td></tr>
+                <tr><td>🍾</td><td>Rolha de Garrafa</td></tr>
+                <tr><td>🫧</td><td>Chiclete Mascado</td></tr>
+                <tr><td>⭕</td><td>Tampinha</td></tr>
+                <tr><td>🧵</td><td>Fio Dental Usado</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- SHOW DO MILHÃO -->
+    <h2>💰 Níveis do Show do Milhão</h2>
+    <div class="levels">
+        <div class="level"><small>Nível 1</small><div class="value green">R$ 1.000</div></div>
+        <div class="level safe"><small>Nível 2 🛡️</small><div class="value gold">R$ 5.000</div></div>
+        <div class="level"><small>Nível 3</small><div class="value green">R$ 50.000</div></div>
+        <div class="level safe"><small>Nível 4 🛡️</small><div class="value gold">R$ 100.000</div></div>
+        <div class="level"><small>Nível 5</small><div class="value green">R$ 500.000</div></div>
+        <div class="level safe"><small>Nível 6 🏆</small><div class="value gold">R$ 1.000.000</div></div>
+    </div>
+    <p style="text-align: center; margin-top: 10px; color: #aaa; font-size: 0.8rem;">🛡️ = Ponto de parada (valor garantido)</p>
+
+    <div class="footer">
+        <p>Games IDAC - Igreja de Deus Águas Claras</p>
+    </div>
+</body>
+</html>
