@@ -275,9 +275,26 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
         
         .menu-screen.hidden { display: none; }
+        
+        /* Versão do Sistema */
+        .version-tag {
+            position: fixed;
+            bottom: 10px;
+            left: 15px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+        
+        .version-tag:hover {
+            color: rgba(255, 255, 255, 0.6);
+        }
         
         .logo-container {
             text-align: center;
@@ -1385,6 +1402,121 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        
+        /* ========== MODAL PERSONALIZADO ========== */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .custom-modal {
+            background: linear-gradient(135deg, #1a1a4e, #2a2a6e);
+            border: 3px solid var(--accent-gold);
+            border-radius: 25px;
+            padding: 30px 40px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+        
+        .custom-modal-overlay.active .custom-modal {
+            transform: scale(1);
+        }
+        
+        .custom-modal-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .custom-modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--accent-gold);
+            margin-bottom: 15px;
+        }
+        
+        .custom-modal-message {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .custom-modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .custom-modal-btn {
+            padding: 12px 30px;
+            border-radius: 25px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .custom-modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .custom-modal-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .custom-modal-btn.confirm {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        .custom-modal-btn.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+        }
+        
+        .custom-modal-btn.success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+        
+        .custom-modal-btn.success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -1581,7 +1713,10 @@
             <div id="placarGeralSection" class="admin-only placar-geral-section" style="margin-top: 40px; padding: 25px; background: var(--card-bg); border: 2px solid var(--accent-gold); border-radius: 20px; max-width: 900px; margin-left: auto; margin-right: auto;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 style="color: var(--accent-gold); font-size: 1.5rem; margin: 0;">🏆 Placar Geral</h3>
-                    <button onclick="zerarPlacarGeral()" class="btn btn-danger" style="padding: 8px 15px; font-size: 0.85rem;">🗑️ Zerar</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="abrirResumo()" class="btn btn-info" style="padding: 8px 15px; font-size: 0.85rem;">📊 Resumo</button>
+                        <button onclick="zerarPlacarGeral()" class="btn btn-danger" style="padding: 8px 15px; font-size: 0.85rem;">🗑️ Zerar</button>
+                    </div>
                 </div>
                 <div id="placarGeralContent" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
                     <!-- Será preenchido por JavaScript -->
@@ -1590,6 +1725,9 @@
                     Os pontos são acumulados automaticamente ao final de cada jogo
                 </p>
             </div>
+            
+            <!-- Versão do Sistema -->
+            <div class="version-tag">Versão 1.0.281225i</div>
         </div>
         
         <!-- ========== CONTAINER DOS JOGOS ========== -->
@@ -1604,9 +1742,73 @@
             <div class="feedback-text" id="feedbackText">Acertou!</div>
         </div>
     </div>
+    
+    <!-- Modal Personalizado -->
+    <div class="custom-modal-overlay" id="customModalOverlay">
+        <div class="custom-modal">
+            <div class="custom-modal-icon" id="customModalIcon">🗑️</div>
+            <h2 class="custom-modal-title" id="customModalTitle">Confirmar Ação</h2>
+            <p class="custom-modal-message" id="customModalMessage">Tem certeza?</p>
+            <div class="custom-modal-buttons">
+                <button class="custom-modal-btn cancel" onclick="closeCustomModal()">Cancelar</button>
+                <button class="custom-modal-btn confirm" id="customModalConfirmBtn" onclick="confirmCustomModal()">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts Base -->
     <script>
+        // ========== MODAL PERSONALIZADO ==========
+        let customModalCallback = null;
+        
+        function showCustomModal(options) {
+            const { icon, title, message, confirmText, confirmClass, onConfirm } = options;
+            
+            document.getElementById('customModalIcon').textContent = icon || '❓';
+            document.getElementById('customModalTitle').textContent = title || 'Confirmar';
+            document.getElementById('customModalMessage').innerHTML = message || 'Tem certeza?';
+            
+            const confirmBtn = document.getElementById('customModalConfirmBtn');
+            confirmBtn.textContent = confirmText || 'Confirmar';
+            confirmBtn.className = 'custom-modal-btn ' + (confirmClass || 'confirm');
+            
+            customModalCallback = onConfirm;
+            
+            document.getElementById('customModalOverlay').classList.add('active');
+        }
+        
+        function closeCustomModal() {
+            document.getElementById('customModalOverlay').classList.remove('active');
+            customModalCallback = null;
+        }
+        
+        function confirmCustomModal() {
+            if (customModalCallback) {
+                customModalCallback();
+            }
+            closeCustomModal();
+        }
+        
+        // Fechar modal com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const customModal = document.getElementById('customModalOverlay');
+                if (customModal && customModal.classList.contains('active')) {
+                    closeCustomModal();
+                }
+            }
+        });
+        
+        // Fechar modal clicando fora (será configurado após DOM carregar)
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('customModalOverlay')?.addEventListener('click', (e) => {
+                if (e.target.id === 'customModalOverlay') {
+                    closeCustomModal();
+                }
+            });
+        });
+        
+        
         // ========== UTILIDADES GLOBAIS ==========
         // ========== CONFIGURAÇÃO DE EQUIPES ==========
         const teamColors = [
@@ -1671,12 +1873,33 @@
         
         // Função para zerar placar geral
         function zerarPlacarGeral() {
-            if (confirm('🗑️ Tem certeza que deseja ZERAR o Placar Geral?\n\nIsso apagará todos os pontos acumulados!')) {
-                window.placarGeral = {};
-                salvarPlacarGeral();
-                alert('✅ Placar Geral zerado com sucesso!');
-                renderPlacarGeral(); // Atualizar a exibição do placar
-            }
+            showCustomModal({
+                icon: '🗑️',
+                title: 'Zerar Placar Geral',
+                message: 'Tem certeza que deseja <strong style="color: #ef4444;">ZERAR</strong> o Placar Geral?<br><br><span style="color: #fbbf24;">⚠️ Isso apagará todos os pontos acumulados!</span>',
+                confirmText: '🗑️ Sim, Zerar!',
+                confirmClass: 'confirm',
+                onConfirm: () => {
+                    window.placarGeral = {};
+                    salvarPlacarGeral();
+                    renderPlacarGeral();
+                    
+                    // Mostrar feedback de sucesso
+                    showCustomModal({
+                        icon: '✅',
+                        title: 'Sucesso!',
+                        message: 'O Placar Geral foi zerado com sucesso.',
+                        confirmText: 'OK',
+                        confirmClass: 'success',
+                        onConfirm: () => {}
+                    });
+                }
+            });
+        }
+        
+        // Função para abrir Resumo - TESTE SIMPLES
+        function abrirResumo() {
+            window.open('https://vanjivaldos-cmyk.github.io/games-idac/resumo.html', 'Resumo', 'width=900,height=700');
         }
         
         const gameRef = database.ref('games/' + window.gameRoom);
@@ -1981,6 +2204,10 @@
                         Utils.showFeedback(data.type || 'correct', data.emoji || '🎉', data.text || 'Parabéns!', data.duration || 3000);
                         Utils.createConfetti(data.confettiAmount || 100);
                         Utils.playApplause();
+                        break;
+                    case 'quemDrawOrder':
+                        // Mostrar sorteio de ordem na projeção
+                        showQuemDrawOrderProjection(data.teamsOrder, data.teams);
                         break;
                     case 'nextRound':
                         handleNextRound(data);
@@ -5956,10 +6183,76 @@ function quemDrawOrder() {
         }, pos * 200);
     });
     
-    // Sincronizar com projeção
+    // Sincronizar com projeção - enviar comando de sorteio
     if (window.currentMode === 'admin') {
-        window.syncToProjection && window.syncToProjection(500);
+        window.adminSendCommand('quemDrawOrder', { 
+            teamsOrder: quemState.teamsOrder,
+            teams: globalTeams.map((t, i) => ({
+                name: t.name,
+                colorIndex: t.colorIndex,
+                leader: t.leader
+            }))
+        });
     }
+}
+
+// Função para mostrar o sorteio na PROJEÇÃO
+function showQuemDrawOrderProjection(teamsOrder, teams) {
+    // Atualizar estado local
+    quemState.teamsOrder = teamsOrder;
+    quemState.orderDrawn = true;
+    
+    // Criar tela de sorteio na projeção
+    const numDicas = Math.min(7, teams.length);
+    
+    document.getElementById('gameContainer').innerHTML = `
+        <div class="game-screen active">
+            <div class="game-content" style="padding-top: 50px;">
+                <h2 style="font-family: 'Orbitron', sans-serif; color: var(--accent-cyan); margin-bottom: 10px; font-size: 2rem;">🤔 Quem Sou Eu?</h2>
+                <h3 style="color: var(--accent-gold); margin-bottom: 30px; font-size: 1.5rem;">🎲 Ordem Sorteada das Equipes</h3>
+                
+                <div id="projectionOrderContainer" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 900px; margin: 0 auto;">
+                </div>
+                
+                <p style="margin-top: 30px; color: var(--text-secondary); font-size: 1.1rem;">
+                    ${numDicas < teams.length ? `⚠️ As ${numDicas} primeiras equipes terão dicas` : '✅ Todas as equipes terão dicas'}
+                </p>
+            </div>
+        </div>
+    `;
+    
+    const container = document.getElementById('projectionOrderContainer');
+    
+    // Animar a exibição das equipes
+    teamsOrder.forEach((teamIdx, pos) => {
+        const team = teams[teamIdx];
+        const color = teamColors[team.colorIndex];
+        const hasHint = pos < numDicas;
+        
+        setTimeout(() => {
+            const badge = document.createElement('div');
+            badge.style.cssText = `
+                background: ${color.color};
+                color: ${color.textColor || '#fff'};
+                padding: 15px 25px;
+                border-radius: 25px;
+                font-weight: bold;
+                font-size: 1.2rem;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                animation: popIn 0.4s ease;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                ${!hasHint ? 'opacity: 0.4; filter: grayscale(50%);' : ''}
+            `;
+            badge.innerHTML = `
+                <span style="background: rgba(0,0,0,0.3); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">${pos + 1}º</span>
+                <span>${team.name}</span>
+                ${hasHint ? '<span style="font-size: 1.5rem;">✓</span>' : '<span style="font-size: 1.2rem;">✗</span>'}
+            `;
+            container.appendChild(badge);
+        }, pos * 300);
+    });
 }
 
 function startQuemGame() {
