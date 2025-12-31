@@ -1713,10 +1713,7 @@
             <div id="placarGeralSection" class="admin-only placar-geral-section" style="margin-top: 40px; padding: 25px; background: var(--card-bg); border: 2px solid var(--accent-gold); border-radius: 20px; max-width: 900px; margin-left: auto; margin-right: auto;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 style="color: var(--accent-gold); font-size: 1.5rem; margin: 0;">🏆 Placar Geral</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="abrirResumo()" class="btn btn-info" style="padding: 8px 15px; font-size: 0.85rem;">📊 Resumo</button>
-                        <button onclick="zerarPlacarGeral()" class="btn btn-danger" style="padding: 8px 15px; font-size: 0.85rem;">🗑️ Zerar</button>
-                    </div>
+                    <button onclick="zerarPlacarGeral()" class="btn btn-danger" style="padding: 8px 15px; font-size: 0.85rem;">🗑️ Zerar</button>
                 </div>
                 <div id="placarGeralContent" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
                     <!-- Será preenchido por JavaScript -->
@@ -1726,8 +1723,11 @@
                 </p>
             </div>
             
+            <!-- Botão Help flutuante (lupa discreta) -->
+            <button onclick="abrirResumo()" title="Informações Gerais" style="position: fixed; bottom: 15px; right: 15px; z-index: 100; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.color='white';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='rgba(255,255,255,0.6)';">🔍</button>
+            
             <!-- Versão do Sistema -->
-            <div class="version-tag">Versão 1.0.281225i</div>
+            <div class="version-tag">Versão 1.0.281225n</div>
         </div>
         
         <!-- ========== CONTAINER DOS JOGOS ========== -->
@@ -5856,205 +5856,445 @@ const quemCharacters = [
     {
         name: "Moisés",
         hints: [
-            "Fui encontrado em um cesto no rio",
-            "Cresci no palácio do Faraó",
-            "Fugi para o deserto após matar um egípcio",
-            "Vi uma sarça que ardia mas não se consumia",
-            "Libertei meu povo da escravidão no Egito",
-            "Dividi as águas do Mar Vermelho",
-            "Recebi os 10 mandamentos no Monte Sinai"
+            "Meu irmão era mais velho e falava melhor que eu",
+            "Minha irmã ficou leprosa por me criticar",
+            "Quebrei as primeiras tábuas da lei em fúria",
+            "Vi a glória de Deus mas não pude ver Seu rosto",
+            "Não entrei na terra prometida por desobediência",
+            "Dividi as águas e meu povo passou a seco",
+            "Fui encontrado num cesto no rio Nilo"
         ]
     },
     {
         name: "Davi",
         hints: [
-            "Era o caçula entre meus irmãos",
-            "Trabalhei como pastor de ovelhas",
-            "Fui ungido ainda jovem para ser rei",
-            "Derrotei um gigante com uma funda",
-            "Fui músico e compositor de salmos",
-            "Meu melhor amigo era filho do rei Saul",
-            "Fui o segundo rei de Israel"
+            "Fingi-me de louco para escapar de um rei filisteu",
+            "Meu filho se rebelou e morreu pendurado numa árvore",
+            "Pequei ao fazer um censo do povo",
+            "Trouxe a arca para Jerusalém dançando",
+            "Escondi-me numa caverna em En-Gedi",
+            "Matei um gigante com uma pedra e uma funda",
+            "Fui pastor de ovelhas e me tornei rei de Israel"
         ]
     },
     {
         name: "José do Egito",
         hints: [
-            "Era o filho preferido do meu pai",
-            "Ganhei uma túnica colorida de presente",
-            "Meus irmãos me venderam como escravo",
-            "Fui para a prisão injustamente acusado",
-            "Interpretei sonhos de dois servos do rei",
-            "Avisei sobre 7 anos de fartura e 7 de fome",
-            "Me tornei governador do Egito"
+            "Meu pai me amava mais por eu ser filho da velhice",
+            "Fui acusado falsamente pela esposa do meu senhor",
+            "Um copeiro esqueceu de mim por dois anos",
+            "Escondi uma taça na sacola do meu irmão mais novo",
+            "Interpretei sonhos sobre vacas e espigas",
+            "Perdoei meus irmãos que me venderam",
+            "Ganhei uma túnica colorida e me tornei governador do Egito"
         ]
     },
     {
         name: "Daniel",
         hints: [
-            "Fui levado cativo para a Babilônia",
-            "Me recusei a comer a comida do rei",
-            "Interpretei os sonhos de Nabucodonosor",
-            "Vi uma mão escrever na parede do palácio",
-            "Continuei orando mesmo sendo proibido",
-            "Fui jogado numa cova com leões",
-            "Os leões não me fizeram mal"
+            "Recebi o nome de Beltessazar na Babilônia",
+            "Interpretei os dedos que escreveram MENE TEQUEL UFARSIM",
+            "Vi um carneiro e um bode em visão profética",
+            "Orava três vezes ao dia com janelas abertas para Jerusalém",
+            "Meus amigos foram jogados numa fornalha ardente",
+            "Passei uma noite com leões famintos",
+            "Fui levado cativo e servi a reis da Babilônia e Pérsia"
         ]
     },
     {
         name: "Noé",
         hints: [
-            "Vivi numa época de muita maldade",
-            "Fui considerado justo diante de Deus",
-            "Recebi instruções para construir algo grande",
-            "Trabalhei por muitos anos em um projeto",
-            "Reuni casais de todos os animais",
-            "Minha família foi a única salva do dilúvio",
-            "Vi o primeiro arco-íris após a tempestade"
+            "Vivi 950 anos no total",
+            "Plantei uma vinha e me embriaguei após o dilúvio",
+            "Meu filho Cam me viu nu e foi amaldiçoado",
+            "Construí algo de madeira de gofer por mais de 100 anos",
+            "Entrei na arca sete dias antes da chuva começar",
+            "Soltei um corvo e depois uma pomba",
+            "Vi o primeiro arco-íris como sinal da aliança"
         ]
     },
     {
         name: "Abraão",
         hints: [
-            "Meu nome original era Abrão",
-            "Deus me mandou sair da minha terra natal",
-            "Recebi uma promessa de ter muitos descendentes",
-            "Minha esposa se chamava Sara",
-            "Tive um filho muito esperado na velhice",
-            "Deus testou minha fé pedindo meu filho",
-            "Sou conhecido como pai da fé"
+            "Menti duas vezes dizendo que minha esposa era minha irmã",
+            "Circuncidei todos os homens da minha casa aos 99 anos",
+            "Negociei com Deus para poupar Sodoma",
+            "Tive um filho com a serva de minha esposa",
+            "Subi um monte com lenha, fogo e faca, mas sem cordeiro",
+            "Recebi a visita de três anjos em Manre",
+            "Saí de Ur dos Caldeus e sou pai de muitas nações"
         ]
     },
     {
         name: "Pedro",
         hints: [
-            "Meu nome original era Simão",
-            "Era pescador antes de conhecer Jesus",
-            "Jesus me disse que eu seria pescador de homens",
-            "Andei sobre as águas por alguns momentos",
-            "Cortei a orelha de um soldado no Getsêmani",
-            "Neguei Jesus três vezes",
-            "Recebi as chaves do Reino dos Céus"
+            "Jesus me chamou de Satanás uma vez",
+            "Fui repreendido por Paulo em Antioquia por hipocrisia",
+            "Cortei a orelha direita de um servo chamado Malco",
+            "Tive uma visão de um lençol com animais imundos",
+            "Uma menina me reconheceu pelo meu sotaque galileu",
+            "Afundei quando tirei os olhos de Jesus",
+            "Neguei Jesus três vezes e recebi as chaves do Reino"
         ]
     },
     {
         name: "Paulo",
         hints: [
-            "Meu nome original era Saulo",
-            "Nasci em Tarso da Cilícia",
-            "Era fariseu e perseguia cristãos",
-            "Fiquei cego no caminho de Damasco",
-            "Me converti após uma visão de Jesus",
-            "Fiz várias viagens missionárias",
-            "Escrevi muitas cartas do Novo Testamento"
+            "Fui picado por uma víbora em Malta e não morri",
+            "Circuncidei Timóteo mas recusei circuncidar Tito",
+            "Fiquei cego por três dias em Damasco",
+            "Tinha cidadania romana por nascimento",
+            "Estudei aos pés de Gamaliel",
+            "Naufráguei três vezes em minhas viagens",
+            "Perseguia cristãos antes de me converter na estrada de Damasco"
         ]
     },
     {
         name: "Jonas",
         hints: [
-            "Deus me mandou pregar em Nínive",
-            "Tentei fugir da missão em um navio",
-            "Uma grande tempestade ameaçou o navio",
-            "Fui lançado ao mar pelos marinheiros",
-            "Fui engolido por um grande peixe",
-            "Fiquei três dias no ventre do animal",
-            "Finalmente obedeci e preguei em Nínive"
+            "Meu nome significa pomba em hebraico",
+            "O navio ia para Társis quando fugi",
+            "Os marinheiros tiraram sortes e caiu sobre mim",
+            "Uma planta cresceu e morreu em um dia sobre minha cabeça",
+            "Fiquei com raiva porque Deus poupou uma cidade",
+            "Passei três dias no ventre de um grande peixe",
+            "Fugi de Deus mas acabei pregando em Nínive"
         ]
     },
     {
         name: "Sansão",
         hints: [
-            "Fui consagrado a Deus desde o nascimento",
-            "Nunca cortei meu cabelo por voto",
-            "Tinha força extraordinária",
-            "Matei um leão com as mãos",
-            "Derrotei mil filisteus com uma queixada de jumento",
-            "Fui traído por uma mulher chamada Dalila",
-            "Morri derrubando o templo de Dagom"
+            "Minha mãe era estéril e um anjo anunciou meu nascimento",
+            "Fiz uma charada sobre mel e leão num banquete",
+            "Amarrei tochas em 300 raposas",
+            "Matei mil homens com uma queixada de jumento",
+            "Carreguei as portas de Gaza numa montanha",
+            "Meu segredo estava no meu cabelo nazireu",
+            "Fui traído por Dalila e morri derrubando o templo de Dagom"
         ]
     },
     {
         name: "Elias",
         hints: [
-            "Fui profeta durante o reinado de Acabe",
-            "Anunciei uma seca de três anos",
-            "Fui alimentado por corvos no deserto",
-            "Desafiei os profetas de Baal no Monte Carmelo",
-            "Fogo do céu consumiu meu sacrifício",
-            "Corri mais rápido que a carruagem do rei",
-            "Fui levado ao céu em um carro de fogo"
+            "Ressuscitei o filho de uma viúva de Sarepta",
+            "Fui alimentado por corvos no ribeiro de Querite",
+            "Mandei um servo olhar o mar sete vezes",
+            "Corri na frente da carruagem de Acabe até Jezreel",
+            "Quis morrer debaixo de um zimbro no deserto",
+            "Fogo do céu consumiu meu sacrifício molhado",
+            "Desafiei os profetas de Baal e subi ao céu num redemoinho"
         ]
     },
     {
         name: "Maria (mãe de Jesus)",
         hints: [
-            "Era uma jovem virgem de Nazaré",
-            "Estava noiva de um carpinteiro",
-            "Um anjo me visitou com uma mensagem",
-            "Visitei minha prima Elisabete quando grávida",
-            "Dei à luz em Belém de Judá",
-            "Coloquei meu bebê em uma manjedoura",
-            "Sou a mãe do Salvador do mundo"
+            "Meu cântico é conhecido como Magnificat",
+            "Guardava todas as coisas em meu coração",
+            "Uma espada atravessaria minha alma, segundo Simeão",
+            "Estava presente numa festa de casamento em Caná",
+            "Minha prima era Elisabete, mãe de João Batista",
+            "Fiquei grávida sendo virgem por obra do Espírito Santo",
+            "Dei à luz em Belém e coloquei meu filho numa manjedoura"
         ]
     },
     {
         name: "Salomão",
         hints: [
-            "Meu pai foi um grande rei de Israel",
-            "Pedi a Deus sabedoria em vez de riquezas",
-            "Me tornei o homem mais sábio que já existiu",
+            "Mandei matar meu irmão Adonias",
+            "Tive 700 esposas e 300 concubinas que desviaram meu coração",
+            "Julguei um caso entre duas mães e um bebê vivo",
+            "A rainha de Sabá veio testar minha sabedoria",
+            "Escrevi Provérbios, Eclesiastes e Cânticos",
             "Construí o primeiro templo de Jerusalém",
-            "Escrevi provérbios e cânticos",
-            "Recebi a visita da rainha de Sabá",
-            "Tive 700 esposas e 300 concubinas"
+            "Pedi sabedoria a Deus em vez de riquezas"
         ]
     },
     {
         name: "Rute",
         hints: [
-            "Nasci em Moabe, terra estrangeira",
-            "Me casei com um israelita que morreu",
-            "Decidi seguir minha sogra Noemi",
-            "Disse: Onde fores, irei eu",
-            "Trabalhei colhendo espigas nos campos",
-            "Fui remida por um parente de meu marido",
-            "Sou bisavó do rei Davi"
+            "Sou uma das quatro mulheres mencionadas na genealogia de Jesus",
+            "Trabalhei nos campos de um parente do marido de minha sogra",
+            "Deitei aos pés de um homem na eira de noite",
+            "Minha cunhada Orfa voltou para Moabe mas eu fiquei",
+            "Meu segundo marido se chamava Boaz",
+            "Meu bisneto foi o maior rei de Israel",
+            "Disse: Onde fores, irei; teu povo é meu povo"
         ]
     },
     {
         name: "Ester",
         hints: [
-            "Era órfã e fui criada por meu primo",
-            "Vivia na Pérsia durante o exílio",
-            "Participei de um concurso de beleza",
-            "Me tornei rainha sem revelar minha origem",
-            "Um homem queria destruir meu povo",
-            "Arrisquei minha vida ao ir ao rei sem ser chamada",
-            "Salvei o povo judeu do extermínio"
+            "Meu nome persa significa estrela",
+            "Meu primo Mordecai descobriu um plano para matar o rei",
+            "Jejuei por três dias antes de ir ao rei sem ser chamada",
+            "Hamã construiu uma forca de 25 metros para Mordecai",
+            "O rei não dormiu e mandou ler os registros numa noite",
+            "Revelei minha origem judaica num banquete",
+            "Salvei meu povo do decreto de extermínio na Pérsia"
         ]
     },
     {
         name: "Gideão",
         hints: [
-            "Um anjo me encontrou malhando trigo escondido",
-            "Pedi sinais a Deus com um velo de lã",
-            "Comecei com 32 mil soldados",
-            "Deus reduziu meu exército para apenas 300",
-            "Usei tochas, cântaros e trombetas como armas",
-            "Derrotei os midianitas com um pequeno grupo",
-            "Também sou conhecido como Jerubaal"
+            "Também sou conhecido como Jerubaal",
+            "Destruí o altar de Baal do meu próprio pai",
+            "Pedi dois sinais com um velo de lã",
+            "Escolhi 300 soldados pelo modo como beberam água",
+            "Usei trombetas, tochas e cântaros vazios como armas",
+            "Comecei com 32 mil e terminei com 300 homens",
+            "Um anjo me encontrou malhando trigo escondido num lagar"
         ]
     },
     {
         name: "Samuel",
         hints: [
-            "Minha mãe orou muito para me ter",
-            "Fui dedicado a Deus desde o nascimento",
-            "Cresci no templo com o sacerdote Eli",
-            "Deus me chamou quando era criança",
-            "Fui o último dos juízes de Israel",
-            "Ungi o primeiro rei de Israel",
-            "Também ungi Davi como rei"
+            "O sacerdote Eli pensou que minha mãe estava bêbada quando orava",
+            "Deus me chamou quatro vezes de noite quando criança",
+            "Ungi dois reis de Israel: um rejeitado e outro escolhido",
+            "Julguei Israel por toda minha vida em circuito",
+            "Meus filhos foram juízes corruptos",
+            "Cortei Agague em pedaços perante o Senhor",
+            "Minha mãe me dedicou ao templo e eu cresci com Eli"
+        ]
+    },
+    {
+        name: "Jeremias",
+        hints: [
+            "Comprei um campo em Anatote durante o cerco de Jerusalém",
+            "Fui proibido de casar como sinal profético",
+            "Escondi um cinto de linho junto ao rio Eufrates",
+            "Meu escriba se chamava Baruque",
+            "O rei Jeoaquim queimou meu rolo no braseiro",
+            "Fui jogado numa cisterna de lama por príncipes",
+            "Sou conhecido como o profeta chorão e vi Jerusalém cair"
+        ]
+    },
+    {
+        name: "Ezequiel",
+        hints: [
+            "Deitei 390 dias do lado esquerdo e 40 do direito",
+            "Cozinhei comida sobre esterco como sinal",
+            "Vi uma roda no meio de outra roda",
+            "Minha esposa morreu e não pude chorar",
+            "Profetizei contra Tiro, dizendo que seria raspada como rocha",
+            "Vi ossos secos se tornarem um exército",
+            "Fui sacerdote e profeta exilado na Babilônia junto ao rio Quebar"
+        ]
+    },
+    {
+        name: "Isaías",
+        hints: [
+            "Andei nu e descalço por três anos como sinal",
+            "Vi serafins com seis asas no ano da morte do rei Uzias",
+            "Profetizei que uma virgem conceberia um filho Emanuel",
+            "Meu filho se chamava Maer-Salal-Hás-Baz",
+            "Disse: Santo, Santo, Santo é o Senhor dos Exércitos",
+            "Descrevi o servo sofredor que foi ferido pelas nossas transgressões",
+            "Disse 'Eis-me aqui, envia-me a mim' após ter os lábios tocados por brasa"
+        ]
+    },
+    {
+        name: "Josué",
+        hints: [
+            "Meu nome original era Oséias, filho de Num",
+            "Liderei o povo quando o maná cessou",
+            "O sol e a lua pararam por minha palavra",
+            "Fui um dos dois espias que trouxeram bom relatório de Canaã",
+            "Mandei colocar 12 pedras no meio do Jordão",
+            "Conquistei Jericó marchando sete dias ao redor",
+            "Disse: Eu e minha casa serviremos ao Senhor"
+        ]
+    },
+    {
+        name: "Calebe",
+        hints: [
+            "Sou quenezeu, não israelita de nascimento",
+            "Aos 85 anos disse que estava tão forte quanto aos 40",
+            "Pedi Hebrom como herança, onde habitavam gigantes",
+            "Minha filha Acsa pediu fontes de água como presente",
+            "Fui o outro espião fiel junto com o filho de Num",
+            "Esperei 45 anos para receber minha porção",
+            "Segui o Senhor plenamente enquanto outros duvidaram"
+        ]
+    },
+    {
+        name: "Eliseu",
+        hints: [
+            "Pedi porção dobrada do espírito do meu mestre",
+            "Fiz flutuar um machado de ferro no rio",
+            "Purifiquei uma panela de morte com farinha",
+            "Amaldiçoei jovens que zombaram de mim e ursos os despedaçaram",
+            "Curei Naamã da lepra mandando-o mergulhar sete vezes no Jordão",
+            "Meus ossos ressuscitaram um morto mesmo depois que morri",
+            "Estava arando com doze juntas de bois quando fui chamado"
+        ]
+    },
+    {
+        name: "Jó",
+        hints: [
+            "Morava na terra de Uz",
+            "Tinha sete filhos e três filhas e era o maior do Oriente",
+            "Três amigos vieram me visitar: Elifaz, Bildade e Zofar",
+            "Um jovem chamado Eliú também me repreendeu",
+            "Deus me respondeu de um redemoinho perguntando onde eu estava na criação",
+            "Recebi o dobro de tudo que tinha perdido",
+            "Disse: O Senhor deu, o Senhor tirou, bendito seja o nome do Senhor"
+        ]
+    },
+    {
+        name: "Jacó",
+        hints: [
+            "Comprei a primogenitura por um guisado vermelho",
+            "Enganei meu pai usando pele de cabrito nas mãos",
+            "Vi uma escada com anjos subindo e descendo em Betel",
+            "Trabalhei 14 anos para casar com quem eu amava",
+            "Lutei com um anjo até o amanhecer e fiquei mancando",
+            "Tive meu nome mudado para Israel",
+            "Sou filho de Isaque e pai das doze tribos"
+        ]
+    },
+    {
+        name: "Isaque",
+        hints: [
+            "Meu nome significa riso",
+            "Fui amarrado sobre a lenha no monte Moriá",
+            "Minha esposa era estéril por vinte anos",
+            "Abri novamente os poços que meu pai havia cavado",
+            "Fui enganado por usar peles de cabrito",
+            "Meus olhos ficaram fracos na velhice",
+            "Sou o filho da promessa, nascido quando meus pais eram idosos"
+        ]
+    },
+    {
+        name: "João Batista",
+        hints: [
+            "Meu pai ficou mudo por não crer no anjo Gabriel",
+            "O Espírito Santo me encheu ainda no ventre de minha mãe",
+            "Comi gafanhotos e mel silvestre no deserto",
+            "Disse que não era digno de desatar as sandálias do Messias",
+            "Fui decapitado a pedido de uma dançarina chamada Salomé",
+            "Repreendi Herodes por tomar a mulher do seu irmão",
+            "Batizei Jesus no rio Jordão e vi o Espírito descer como pomba"
+        ]
+    },
+    {
+        name: "Zaqueu",
+        hints: [
+            "Era chefe dos publicanos em Jericó",
+            "Subi num sicômoro porque era baixo de estatura",
+            "Jesus me chamou pelo nome sem nunca ter me encontrado",
+            "Prometi dar metade dos meus bens aos pobres",
+            "Disse que devolveria quatro vezes o que roubei",
+            "Jesus disse que a salvação entrou na minha casa",
+            "Era cobrador de impostos e fiquei rico às custas do povo"
+        ]
+    },
+    {
+        name: "Lázaro de Betânia",
+        hints: [
+            "Minhas irmãs mandaram avisar Jesus que eu estava doente",
+            "Jesus chorou ao ver meu túmulo",
+            "Já estava morto há quatro dias quando Jesus chegou",
+            "Marta disse que eu já cheirava mal",
+            "Saí do túmulo ainda amarrado com faixas",
+            "Os sacerdotes queriam me matar junto com Jesus",
+            "Sou o homem que Jesus ressuscitou em Betânia"
+        ]
+    },
+    {
+        name: "Bartimeu",
+        hints: [
+            "Era cego e mendigava junto ao caminho em Jericó",
+            "Gritei 'Filho de Davi' mesmo quando mandaram eu calar",
+            "Joguei fora minha capa para ir até Jesus",
+            "Jesus perguntou o que eu queria que Ele fizesse",
+            "Recebi a visão e comecei a seguir Jesus pelo caminho",
+            "Meu pai se chamava Timeu",
+            "Sou o cego que foi curado por Jesus na saída de Jericó"
+        ]
+    },
+    {
+        name: "Nicodemos",
+        hints: [
+            "Era fariseu e membro do Sinédrio",
+            "Fui visitar Jesus à noite secretamente",
+            "Perguntei como alguém pode nascer sendo velho",
+            "Ouvi sobre a serpente de bronze levantada por Moisés",
+            "Defendi Jesus perguntando se nossa lei condena sem ouvir",
+            "Trouxe quase 30 quilos de mirra e aloés para o sepultamento",
+            "Ouvi que é preciso nascer de novo para ver o Reino de Deus"
+        ]
+    },
+    {
+        name: "Marta de Betânia",
+        hints: [
+            "Reclamei que minha irmã me deixou servir sozinha",
+            "Jesus disse que eu estava ansiosa com muitas coisas",
+            "Cri que Jesus é o Cristo antes dele ressuscitar meu irmão",
+            "Disse: Sei que meu irmão ressuscitará no último dia",
+            "Fui a primeira a correr ao encontro de Jesus quando ele chegou",
+            "Minha casa era lugar de descanso para Jesus em Betânia",
+            "Sou irmã de Maria e Lázaro"
+        ]
+    },
+    {
+        name: "Tomé",
+        hints: [
+            "Também sou chamado de Dídimo, que significa gêmeo",
+            "Disse: Vamos também nós para morrermos com ele",
+            "Perguntei a Jesus: Como podemos saber o caminho?",
+            "Não estava presente quando Jesus apareceu aos discípulos",
+            "Disse que só creria vendo e tocando as marcas dos cravos",
+            "Oito dias depois Jesus apareceu e me convidou a tocar",
+            "Exclamei: Senhor meu e Deus meu!"
+        ]
+    },
+    {
+        name: "Barnabé",
+        hints: [
+            "Meu nome original era José, levita de Chipre",
+            "Vendi um campo e depositei o dinheiro aos pés dos apóstolos",
+            "Fui enviado a Antioquia quando ouviram do avivamento lá",
+            "Busquei Saulo em Tarso para me ajudar no ministério",
+            "Me separei de Paulo por causa de João Marcos",
+            "Fui confundido com Zeus em Listra",
+            "Meu nome significa filho da consolação"
+        ]
+    },
+    {
+        name: "Timóteo",
+        hints: [
+            "Minha mãe era judia e meu pai grego",
+            "Minha avó Lóide e mãe Eunice me ensinaram as Escrituras",
+            "Fui circuncidado adulto por causa dos judeus da região",
+            "Paulo me chamava de verdadeiro filho na fé",
+            "Recebi orientação para não deixar desprezarem minha juventude",
+            "Pastoreei a igreja de Éfeso",
+            "Paulo escreveu duas cartas pessoais para mim"
+        ]
+    },
+    {
+        name: "Ana (profetisa)",
+        hints: [
+            "Era da tribo de Aser",
+            "Fui casada por apenas sete anos antes de enviuvar",
+            "Tinha 84 anos e não saía do templo",
+            "Servia a Deus com jejuns e orações noite e dia",
+            "Vi o menino Jesus quando foi apresentado no templo",
+            "Falei dele a todos que esperavam a redenção de Jerusalém",
+            "Sou a profetisa que reconheceu o Messias bebê"
+        ]
+    },
+    {
+        name: "Simeão",
+        hints: [
+            "O Espírito Santo revelou que eu não morreria antes de ver o Messias",
+            "Fui ao templo movido pelo Espírito no dia certo",
+            "Tomei o menino Jesus nos braços e louvei a Deus",
+            "Disse que meus olhos viram a salvação preparada",
+            "Profetizei que uma espada atravessaria a alma de Maria",
+            "Disse que Jesus seria luz para os gentios",
+            "Sou o homem justo que abençoou a família de Jesus no templo"
         ]
     }
 ];
@@ -6557,45 +6797,45 @@ function confirmQuemExit() {
 
 const cabinePrizes = [
     // Prêmios bons
-    { name: "Caixa de Chocolate", emoji: "🍫", value: 3, type: "good" },
-    { name: "Bíblia de Estudo", emoji: "📖", value: 5, type: "great" },
-    { name: "Vale-Presente R$50", emoji: "🎁", value: 5, type: "great" },
-    { name: "Fone Bluetooth", emoji: "🎧", value: 4, type: "good" },
-    { name: "Livro Cristão", emoji: "📚", value: 3, type: "good" },
-    { name: "Caneca Personalizada", emoji: "☕", value: 2, type: "good" },
-    { name: "Camiseta IDAC", emoji: "👕", value: 3, type: "good" },
+    { name: "Caixa de Chocolate Comum", emoji: "🍫", value: 3, type: "good" },
+    { name: "Panetone Cacau Show Maracujá", emoji: "🎄", value: 5, type: "great" },
+    { name: "Vale-Presente", emoji: "🎁", value: 5, type: "great" },
+    { name: "Fone de Ouvido", emoji: "🎧", value: 4, type: "good" },
+    { name: "Livro Igreja Simples", emoji: "📚", value: 3, type: "good" },
+    { name: "Identificador PET", emoji: "🐕", value: 2, type: "good" },
+    { name: "Camiseta NASCI DE NOVO", emoji: "👕", value: 3, type: "good" },
     { name: "Mochila", emoji: "🎒", value: 4, type: "good" },
     { name: "Caderno Premium", emoji: "📓", value: 2, type: "good" },
     { name: "Kit Papelaria", emoji: "✏️", value: 2, type: "good" },
-    { name: "Garrafa Térmica", emoji: "🧴", value: 3, type: "good" },
+    { name: "Taça/Copo Térmico", emoji: "🥤", value: 3, type: "good" },
     { name: "Pen Drive 32GB", emoji: "💾", value: 3, type: "good" },
     
     // Prêmios ruins (armadilhas)
-    { name: "Copo Descartável", emoji: "🥤", value: 0, type: "bad" },
-    { name: "Clip de Papel", emoji: "📎", value: 0, type: "bad" },
-    { name: "Borracha Velha", emoji: "🧽", value: 0, type: "bad" },
-    { name: "Caneta sem Tinta", emoji: "🖊️", value: 0, type: "bad" },
+    { name: "Capa de Celular Usada", emoji: "📱", value: 0, type: "bad" },
+    { name: "Microfone para Celular Usado", emoji: "🎤", value: 0, type: "bad" },
+    { name: "Umedecedor de Dedo", emoji: "💧", value: 0, type: "bad" },
+    { name: "Caneta Azul Grip Usada", emoji: "🖊️", value: 0, type: "bad" },
     { name: "Folha em Branco", emoji: "📄", value: 0, type: "bad" },
-    { name: "Balão Murcho", emoji: "🎈", value: 0, type: "bad" },
+    { name: "Balão", emoji: "🎈", value: 0, type: "bad" },
     { name: "Elástico Velho", emoji: "⭕", value: 0, type: "bad" },
-    { name: "Palito de Picolé", emoji: "🪵", value: 0, type: "bad" },
-    { name: "Sachê de Ketchup", emoji: "🍅", value: 0, type: "bad" },
+    { name: "PenDrive que não funciona", emoji: "💾", value: 0, type: "bad" },
+    { name: "Sachê de Wasabi", emoji: "🟢", value: 0, type: "bad" },
     { name: "Guardanapo Usado", emoji: "🧻", value: 0, type: "bad" },
     
     // Mais prêmios bons
-    { name: "Cesta de Café da Manhã", emoji: "🧺", value: 5, type: "great" },
+    { name: "Livro Meu Bebê Veio com Manual", emoji: "📖", value: 5, type: "great" },
     { name: "Porta-Retrato", emoji: "🖼️", value: 2, type: "good" },
     { name: "Almofada Decorativa", emoji: "🛋️", value: 2, type: "good" },
     { name: "Kit Churrasco", emoji: "🍖", value: 4, type: "good" },
     { name: "Jogo de Toalhas", emoji: "🛁", value: 3, type: "good" },
-    { name: "Caixa de Bombom Fino", emoji: "🎁", value: 4, type: "good" },
+    { name: "Caixa de Bombom Fino", emoji: "🍬", value: 4, type: "good" },
     { name: "Relógio de Parede", emoji: "🕐", value: 3, type: "good" },
     { name: "Vale Pizza", emoji: "🍕", value: 3, type: "good" },
     { name: "Luminária LED", emoji: "💡", value: 3, type: "good" },
     { name: "Guarda-Chuva Premium", emoji: "☂️", value: 2, type: "good" },
     
     // Mais prêmios ruins
-    { name: "Botão de Camisa", emoji: "🔘", value: 0, type: "bad" },
+    { name: "Controle Remoto sem Pilha", emoji: "📺", value: 0, type: "bad" },
     { name: "Rolha de Garrafa", emoji: "🍾", value: 0, type: "bad" },
     { name: "Chiclete Mascado", emoji: "🫧", value: 0, type: "bad" },
     { name: "Tampinha de Refrigerante", emoji: "⭕", value: 0, type: "bad" },
@@ -6896,6 +7136,7 @@ function cabineDecision(accepted) {
 
 function cabineEndGame() {
     const finalPrize = cabineState.currentPrize;
+    const points = finalPrize.value || 0;
     
     Utils.createConfetti(100);
     
@@ -6917,7 +7158,38 @@ function cabineEndGame() {
                         <div style="font-family: 'Righteous', cursive; font-size: 2.5rem; color: ${finalPrize.type === 'bad' ? '#ff4757' : 'var(--accent-gold)'};">
                             ${finalPrize.name}
                         </div>
+                        <div style="margin-top: 15px; padding: 10px 25px; background: ${points > 0 ? 'var(--accent-green)' : 'rgba(255,71,87,0.3)'}; border-radius: 20px; display: inline-block;">
+                            <span style="font-size: 1.5rem; font-weight: bold; color: ${points > 0 ? 'var(--bg-primary)' : '#ff4757'};">
+                                ${points > 0 ? `+${points} pontos` : '0 pontos'}
+                            </span>
+                        </div>
                         ${finalPrize.type === 'bad' ? '<div style="color: #ff4757; margin-top: 10px; font-size: 1.2rem;">😅 Ops... pelo menos foi divertido!</div>' : ''}
+                    </div>
+                    
+                    <!-- Seleção de Equipe para pontuação -->
+                    <div class="admin-only" style="background: var(--card-bg); border: 2px solid var(--accent-cyan); border-radius: 20px; padding: 25px; margin-bottom: 30px;">
+                        <h3 style="color: var(--accent-cyan); margin-bottom: 15px;">🏆 Adicionar Pontos ao Placar Geral</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.9rem;">
+                            Selecione a equipe que jogou para ${points > 0 ? 'adicionar os pontos:' : 'registrar (0 pontos):'}
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                            ${globalTeams.map((team, idx) => `
+                                <button onclick="cabineAddPoints(${idx}, ${points})" 
+                                    class="btn" 
+                                    style="background: ${team.color.includes('gradient') ? team.color : team.color}; 
+                                           color: ${team.textColor || 'white'}; 
+                                           padding: 12px 20px; 
+                                           border-radius: 15px;
+                                           min-width: 120px;
+                                           ${points === 0 ? 'opacity: 0.5;' : ''}">
+                                    ${team.name.split(' - ')[0]}
+                                    ${points > 0 ? `<br><small>+${points} pts</small>` : ''}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem;">
+                            💡 Clique na equipe para adicionar os pontos automaticamente
+                        </p>
                     </div>
                     
                     <!-- Histórico -->
@@ -6948,6 +7220,25 @@ function cabineEndGame() {
     `;
     
     window.syncToProjection && window.syncToProjection(200);
+}
+
+// Função para adicionar pontos do Cabine ao Placar Geral
+function cabineAddPoints(teamIndex, points) {
+    if (points > 0) {
+        globalScores[teamIndex] = (globalScores[teamIndex] || 0) + points;
+        saveGlobalScores();
+        updatePlacarGeral();
+        
+        Utils.showFeedback('🎉', `+${points} pts para ${globalTeams[teamIndex].name.split(' - ')[0]}!`);
+    } else {
+        Utils.showFeedback('😅', `${globalTeams[teamIndex].name.split(' - ')[0]} levou uma armadilha!`);
+    }
+    
+    // Desabilitar botões após clicar
+    document.querySelectorAll('.admin-only button[onclick^="cabineAddPoints"]').forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.3';
+    });
 }
 
 function confirmCabineExit() {
